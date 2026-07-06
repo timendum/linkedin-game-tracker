@@ -1,0 +1,202 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Popup dimensions and base typography */
+body {
+  width: 400px;
+  min-height: 500px;
+  max-height: 600px;
+  overflow-y: auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+#app {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Header */
+.popup-header {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.popup-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0a66c2;
+}
+
+/* Sections */
+.section {
+  padding: 12px 0;
+}
+
+.section + .section {
+  border-top: 1px solid #f0f0f0;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333333;
+}
+
+/* Game type selector */
+#game-type-selector {
+  padding: 8px 0;
+}
+
+#game-select {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background: #fafafa;
+  color: #1a1a1a;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+#game-select:hover {
+  border-color: #0a66c2;
+}
+
+#game-select:focus {
+  outline: 2px solid #0a66c2;
+  outline-offset: 2px;
+  border-color: #0a66c2;
+}
+
+/* Stats section */
+#stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Sessions section */
+#sessions-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Comparison section */
+#comparison-content {
+  overflow-x: auto;
+}
+
+
+
+/* Empty state */
+.empty-state-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  text-align: center;
+}
+
+.empty-state-message {
+  font-size: 14px;
+  color: #666666;
+  line-height: 1.6;
+}
+
+/* Visibility toggle */
+.hidden {
+  display: none !important;
+}
+
+/* Accessible focus states */
+button:focus,
+a:focus,
+select:focus,
+input:focus {
+  outline: 2px solid #0a66c2;
+  outline-offset: 2px;
+}
+
+/* Button base styles */
+button {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+button:hover {
+  background: #f5f5f5;
+  border-color: #0a66c2;
+}
+
+button:active {
+  background: #e8e8e8;
+}
+
+/* Primary button variant */
+button.primary {
+  background: #0a66c2;
+  color: #ffffff;
+  border-color: #0a66c2;
+}
+
+button.primary:hover {
+  background: #004182;
+}
+
+button.primary:active {
+  background: #003366;
+}
+
+/* Links */
+a {
+  color: #0a66c2;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cccccc;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}

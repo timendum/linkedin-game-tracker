@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Games Tracker for LinkedIn",
+  "version": "0.0.1",
+  "description": "Automatically tracks your LinkedIn game performance and displays statistics.",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_title": "LinkedIn Games Tracker"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/*"
+      ],
+      "js": [
+        "content/game-scraper.js",
+        "content/result-scraper.js"
+      ]
+    }
+  ]
+}
