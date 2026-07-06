@@ -136,16 +136,12 @@ function getLeaderboardDate(docs: Document[]): string {
 class ResultScraper {
   private gameType: GameType;
   private observer: MutationObserver | null = null;
-  /** Set of friend names already reported — avoids duplicate sends */
-  private reportedNames: Set<string> = new Set();
-  /** Whether the user's own result (from "You" row) has been reported */
-  private userResultReported = false;
   /** Tracks the currently active tab ("today" | "yesterday") to detect tab switches */
   private lastActiveTab: string | null = null;
   /** Debounce timer for batching DOM mutation callbacks */
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   /** Delay in ms to debounce rapid DOM mutations (e.g., "See more" loading multiple rows) */
-  private static readonly DEBOUNCE_MS = 300;
+  private static readonly DEBOUNCE_MS = 800;
 
   constructor(gameType: GameType) {
     this.gameType = gameType;
@@ -408,11 +404,8 @@ class ResultScraper {
       }
     }
 
-    // If the active tab changed, reset reported names so all friends are re-reported
-    // with the correct date for the new tab
+    // Track tab switches so we know when the date context changes
     if (activeTab !== null && activeTab !== this.lastActiveTab) {
-      this.reportedNames.clear();
-      this.userResultReported = false;
       this.lastActiveTab = activeTab;
     }
 
@@ -427,26 +420,13 @@ class ResultScraper {
     // Need at least one row to proceed (even if it's just "You")
     if (totalRows === 0) return;
 
-    // --- Gather user result and new friends ---
-    let userSession: GameSession | null = null;
-    if (!this.userResultReported) {
-      userSession = this.extractUserResult();
-      if (userSession) {
-        this.userResultReported = true;
-      }
-    }
+    // --- Gather user result and friends ---
+    const userSession = this.extractUserResult();
+    const friendResults = this.extractFriendsResults();
 
-    const allResults = this.extractFriendsResults();
-    const newResults = allResults.filter(
-      (r) => !this.reportedNames.has(r.displayName),
-    );
-
-    // Only send if we have something new to report
-    if (userSession || newResults.length > 0) {
-      for (const result of newResults) {
-        this.reportedNames.add(result.displayName);
-      }
-      this.reportLeaderboardResults(userSession, newResults);
+    // Only send if we have something to report
+    if (userSession || friendResults.length > 0) {
+      this.reportLeaderboardResults(userSession, friendResults);
     }
   }
 
