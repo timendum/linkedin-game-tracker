@@ -1,1 +1,7 @@
 dist/
+
+# Dev server esbuild outputs
+src/dev/browser-mock.js
+src/dev/browser-mock.js.map
+src/popup/main.js
+src/popup/main.js.map

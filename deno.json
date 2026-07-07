@@ -1,12 +1,18 @@
 {
   "tasks": {
     "build": "deno run --allow-read --allow-write --allow-env --allow-run build.ts",
-    "check": "deno check src/**/*.ts",
+    "check": "deno check src/**/*.ts src/**/*.tsx",
     "test": "deno test --allow-read --allow-write"
   },
   "imports": {
+    "preact": "npm:preact@10.25.4",
+    "preact/hooks": "npm:preact@10.25.4/hooks",
     "esbuild": "npm:esbuild@0.24.2",
     "fast-check": "npm:fast-check@3.23.2"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
   "fmt": {
     "lineWidth": 100

@@ -55,4 +55,3 @@ build.ts        – Deno + esbuild build script
 
 - Do not add Node.js dependencies or `package.json`. This is a Deno project.
 - Do not modify `dist/` directly — it is a build output.
-- Do not introduce frameworks (React, etc.) for the popup — it uses vanilla TS with view modules.

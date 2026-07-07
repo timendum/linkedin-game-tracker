@@ -53,37 +53,6 @@ body {
   color: #333333;
 }
 
-/* Game type selector */
-#game-type-selector {
-  padding: 8px 0;
-}
-
-#game-select {
-  width: 100%;
-  padding: 8px 12px;
-  font-size: 14px;
-  font-family: inherit;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px;
-  background: #fafafa;
-  color: #1a1a1a;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-}
-
-#game-select:hover {
-  border-color: #0a66c2;
-}
-
-#game-select:focus {
-  outline: 2px solid #0a66c2;
-  outline-offset: 2px;
-  border-color: #0a66c2;
-}
-
 /* Stats section */
 #stats-content {
   display: flex;
@@ -104,8 +73,6 @@ body {
 #comparison-content {
   overflow-x: auto;
 }
-
-
 
 /* Empty state */
 .empty-state-container {
@@ -199,4 +166,373 @@ a:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #999999;
+}
+
+/* Today Summary scrollable container */
+#today-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  max-height: calc(600px - 120px);
+}
+
+/* Today Header */
+.today-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.today-header__date {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.today-header__score {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0a66c2;
+  background: #e8f4fd;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+/* Today Cards container */
+.today-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Today Card – base */
+.today-card {
+  padding: 8px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Today Card – played state */
+.today-card--played {
+  background: #f8fbff;
+}
+
+/* Today Card – unplayed state */
+.today-card--unplayed {
+  background: #fafafa;
+  opacity: 0.75;
+}
+
+/* Today Card – top row (name + score | link) */
+.today-card__top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.today-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0a66c2;
+}
+
+.today-card__name--link {
+  color: #0a66c2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.today-card__name--link:hover {
+  text-decoration: underline;
+}
+
+.today-card__result {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555555;
+}
+
+.today-card__link {
+  margin-left: auto;
+  font-size: 12px;
+  color: #0a66c2;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.today-card__link:hover {
+  text-decoration: underline;
+}
+
+/* Today Card – pills row */
+.today-card__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Today Card – pill base */
+.today-card__pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+/* Pill color coding by percentile tier */
+.pill--excellent {
+  background: #d4edda;
+  color: #155724;
+}
+
+.pill--great {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.pill--good {
+  background: #e2e3f1;
+  color: #383d6e;
+}
+
+.pill--average {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.pill--below {
+  background: #f5e6e6;
+  color: #721c24;
+}
+
+/* Today Card – Play CTA button */
+.today-card__cta {
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
+/* Distance color utilities */
+.distance--better {
+  color: #1a7f37;
+}
+
+.distance--worse {
+  color: #cf222e;
+}
+
+/* Back button */
+.back-btn {
+  font-size: 13px;
+  padding: 0;
+  margin-bottom: -8px;
+  border: none;
+  background: none;
+  color: #0a66c2;
+  cursor: pointer;
+  font-weight: 500;
+  text-align: left;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+  background: none;
+}
+
+/* Game Detail View */
+.game-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Detail Card – section container */
+.detail-card {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f8fbff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.game-header-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.game-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.game-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0a66c2;
+  margin: 0;
+}
+
+.game-header__link {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0a66c2;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.game-header__link:hover {
+  text-decoration: underline;
+}
+
+.game-header__today {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555555;
+}
+
+.today-result {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555555;
+}
+
+/* Percentile Pills */
+.percentile-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.percentile-pill {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.percentile-high {
+  background: #d4edda;
+  color: #155724;
+}
+
+.percentile-mid {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.percentile-low {
+  background: #fff3cd;
+  color: #856404;
+}
+
+/* Personal Stats Row */
+.personal-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: #333333;
+}
+
+.personal-stats-row span {
+  cursor: default;
+}
+
+.personal-stats-row strong {
+  font-weight: 600;
+  color: #555555;
+  margin-right: 4px;
+}
+
+/* Trend Sparkline */
+.trend-sparkline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trend-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #666666;
+  white-space: nowrap;
+}
+
+.trend-blocks {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: #0a66c2;
+}
+
+/* Friends Leaderboard */
+.friends-leaderboard {
+  overflow-x: auto;
+}
+
+.friends-leaderboard table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.friends-leaderboard th {
+  text-align: left;
+  font-weight: 600;
+  color: #555555;
+  padding: 4px 6px;
+  border-bottom: 1px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.friends-leaderboard td {
+  padding: 4px 6px;
+  color: #333333;
+  white-space: nowrap;
+}
+
+.friends-leaderboard .you-row {
+  font-weight: 600;
+}
+
+.friends-leaderboard tbody tr:nth-child(even) {
+  background: #f5f8fc;
+}
+
+.friends-leaderboard tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+
+.friends-leaderboard tbody tr:not(.you-row):hover {
+  background: #edf2f7;
+}
+
+/* Loading & Error States */
+.loading-indicator {
+  text-align: center;
+  padding: 24px;
+  font-size: 14px;
+  color: #666666;
+}
+
+.error-message {
+  padding: 12px;
+  font-size: 13px;
+  color: #721c24;
+  background: #f8d7da;
+  border-radius: 6px;
 }

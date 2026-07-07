@@ -3,6 +3,8 @@
  * Provides locale-appropriate formatting for times, averages, dates, and counts.
  */
 
+import type { GameType } from "./types.ts";
+
 /**
  * Formats a duration in seconds as a human-readable string.
  * - If seconds < 60: "5s"
@@ -33,8 +35,8 @@ export function formatAverage(value: number): string {
  * Uses the default locale for formatting.
  */
 export function formatDate(isoDate: string): string {
-  const date = new Date(isoDate);
-  return date.toLocaleDateString();
+  const date = Temporal.PlainDate.from(isoDate);
+  return date.toLocaleString();
 }
 
 /**
@@ -47,4 +49,70 @@ export function formatCount(
   period: string,
 ): string {
   return `${count} ${gameType} games ${period}`;
+}
+
+/** LinkedIn game URLs keyed by game type. */
+export const GAME_URLS: Record<GameType, string> = {
+  pinpoint: "https://www.linkedin.com/games/pinpoint",
+  queens: "https://www.linkedin.com/games/queens",
+  crossclimb: "https://www.linkedin.com/games/crossclimb",
+  tango: "https://www.linkedin.com/games/tango",
+  wend: "https://www.linkedin.com/games/wend",
+  patches: "https://www.linkedin.com/games/patches",
+  zip: "https://www.linkedin.com/games/zip",
+  sudoku: "https://www.linkedin.com/games/mini-sudoku",
+};
+
+/** Human-friendly display names keyed by game type. */
+export const GAME_DISPLAY_NAMES: Record<GameType, string> = {
+  pinpoint: "Pinpoint",
+  queens: "Queens",
+  crossclimb: "Crossclimb",
+  tango: "Tango",
+  wend: "Wend",
+  patches: "Patches",
+  zip: "Zip",
+  sudoku: "Mini-Sudoku",
+};
+
+/**
+ * Formats the personal average distance with sign and unit.
+ * Returns the arithmetic difference between today's result and the historical average,
+ * rounded to one decimal place, with a color indicator:
+ * - Green "−" prefix when today is better (lower value)
+ * - Red "+" prefix when today is worse (higher value)
+ * - Neutral "0.0" when today equals the average
+ *
+ * For time-based games (all except pinpoint), appends "s" suffix.
+ */
+export function formatDistance(
+  todayValue: number,
+  average: number,
+  gameType: GameType,
+): { text: string; color: "green" | "red" | "neutral" } {
+  const difference = todayValue - average;
+  const rounded = Math.abs(difference);
+  const fixed = rounded.toFixed(1);
+
+  if (difference === 0) {
+    return { text: "0.0", color: "neutral" };
+  }
+
+  const isTimeBased = gameType !== "pinpoint";
+  const suffix = isTimeBased ? "s" : "";
+
+  if (difference < 0) {
+    // Today is better (lower value)
+    return { text: `\u2212${fixed}${suffix}`, color: "green" };
+  }
+
+  // Today is worse (higher value)
+  return { text: `+${fixed}${suffix}`, color: "red" };
+}
+
+/**
+ * Formats a percentile value as "N%".
+ */
+export function formatPercentile(value: number): string {
+  return `${value}%`;
 }

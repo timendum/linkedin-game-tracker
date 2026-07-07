@@ -11,7 +11,6 @@ import type {
   GameType,
   LeaderboardResultsPayload,
   ScoreBasedSession,
-  SessionFilter,
   TimeBasedSession,
 } from "../lib/types.ts";
 import { MessageType } from "../lib/types.ts";
@@ -85,18 +84,6 @@ async function handleMessage(
       return result;
     }
 
-    case MessageType.FRIENDS_RESULTS: {
-      const friendResults = message.payload as FriendResult[];
-      const saveResults = [];
-      for (const fr of friendResults) {
-        const session = friendResultToSession(fr);
-        const result = await dataStore.saveSession(session);
-        saveResults.push(result);
-      }
-      await storageMonitor.onStorageWrite();
-      return saveResults;
-    }
-
     case MessageType.LEADERBOARD_RESULTS: {
       const payload = message.payload as LeaderboardResultsPayload;
       const saveResults = [];
@@ -114,36 +101,15 @@ async function handleMessage(
       return saveResults;
     }
 
-    case MessageType.GET_STATS: {
-      const gameType = message.gameType as GameType | undefined;
-      return await dataStore.getStats(gameType);
+    case MessageType.GET_TODAY_SUMMARY: {
+      const date = message.date as string;
+      return await dataStore.getTodaySummary(date);
     }
 
-    case MessageType.GET_SESSIONS: {
-      const filter = message.filter as SessionFilter;
-      return await dataStore.getSessions(filter);
-    }
-
-    case MessageType.GET_COMPARISON: {
+    case MessageType.GET_GAME_DETAIL: {
       const gameType = message.gameType as GameType;
-      const dateRange = message.dateRange as { from: string; to: string };
-      return await dataStore.getFriendsComparison(gameType, dateRange);
-    }
-
-    case MessageType.EXPORT_DATA: {
-      const filter = message.filter as SessionFilter | undefined;
-      return await dataStore.getAllSessions(filter);
-    }
-
-    case MessageType.IMPORT_DATA: {
-      const sessions = message.sessions as GameSession[];
-      const result = await dataStore.importSessions(sessions);
-      await storageMonitor.onStorageWrite();
-      return result;
-    }
-
-    case MessageType.STORAGE_STATUS: {
-      return await dataStore.getStorageUsage();
+      const date = message.date as string;
+      return await dataStore.getGameDetail(gameType, date);
     }
 
     default:

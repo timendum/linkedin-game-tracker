@@ -12,6 +12,8 @@
 import type {
   ComparisonData,
   ComparisonEntry,
+  GameDaySummary,
+  GameDetailData,
   GameSession,
   GameStats,
   GameType,
@@ -22,10 +24,17 @@ import type {
   SessionFilter,
   TimeBasedSession,
   TimeBasedStats,
+  TodaySummaryData,
 } from "../lib/types.ts";
 
 import { browserAPI } from "../lib/browser.ts";
 import { VALID_GAME_TYPES } from "../lib/validators.ts";
+import {
+  buildLeaderboard,
+  computeMedian,
+  computePercentile,
+  getMetric,
+} from "../lib/game-detail-utils.ts";
 
 export const STORAGE_KEYS = {
   LAST_EXPORT: "last_export_date",
@@ -341,6 +350,183 @@ export class DataStore {
     const total = browserAPI.storage.QUOTA_BYTES;
     const percentage = total > 0 ? Math.round((used / total) * 10000) / 100 : 0;
     return { used, total, percentage };
+  }
+
+  /**
+   * Get today's summary data for all 8 game types.
+   * For each game: finds user session, friends sessions, computes historical average and percentile.
+   */
+  async getTodaySummary(date: string): Promise<TodaySummaryData> {
+    const games: GameDaySummary[] = [];
+
+    for (const gameType of VALID_GAME_TYPES) {
+      const sessions = await this.loadSessionsForGame(gameType);
+
+      // Find user session for the date: prefer completed, otherwise any
+      const userSessionsToday = sessions.filter(
+        (s) => s.playerName === "self" && s.date === date,
+      );
+      let userSession: GameSession | null = null;
+      if (userSessionsToday.length > 0) {
+        const completed = userSessionsToday.find((s) => s.completed);
+        userSession = completed ?? userSessionsToday[0];
+      }
+
+      // Find friends' completed sessions for the date
+      const friendsSessions = sessions.filter(
+        (s) => s.playerName !== "self" && s.date === date && s.completed,
+      );
+
+      // Compute prior completed user sessions (excluding today)
+      const priorSessions = sessions.filter(
+        (s) => s.playerName === "self" && s.completed && s.date !== date,
+      );
+      const priorSessionCount = priorSessions.length;
+
+      // Compute historical average (null if fewer than 2 prior sessions)
+      let historicalAverage: number | null = null;
+      if (priorSessionCount >= 2) {
+        if (gameType === "pinpoint") {
+          const total = priorSessions.reduce(
+            (sum, s) => sum + (s as ScoreBasedSession).score,
+            0,
+          );
+          historicalAverage = total / priorSessionCount;
+        } else {
+          const total = priorSessions.reduce(
+            (sum, s) => sum + (s as TimeBasedSession).completionTime,
+            0,
+          );
+          historicalAverage = total / priorSessionCount;
+        }
+      }
+
+      // Compute historical percentile (null if < 5 prior sessions or no completed user session)
+      let historicalPercentile: number | null = null;
+      if (priorSessionCount >= 5 && userSession !== null && userSession.completed) {
+        let todayMetric: number;
+        let countBetterOrEqual: number;
+
+        if (gameType === "pinpoint") {
+          todayMetric = (userSession as ScoreBasedSession).score;
+          // "Better or equal" means today's value <= prior value (lower is better)
+          countBetterOrEqual = priorSessions.filter(
+            (s) => todayMetric <= (s as ScoreBasedSession).score,
+          ).length;
+        } else {
+          todayMetric = (userSession as TimeBasedSession).completionTime;
+          // "Better or equal" means today's value <= prior value (lower is better)
+          countBetterOrEqual = priorSessions.filter(
+            (s) => todayMetric <= (s as TimeBasedSession).completionTime,
+          ).length;
+        }
+
+        historicalPercentile = Math.round(
+          (countBetterOrEqual / priorSessionCount) * 100,
+        );
+      }
+
+      games.push({
+        gameType,
+        userSession,
+        historicalAverage,
+        priorSessionCount,
+        historicalPercentile,
+        friendsSessions,
+      });
+    }
+
+    return { date, games };
+  }
+
+  /**
+   * Get full game detail data for the per-game detail view.
+   * Assembles todaySession, percentiles, personal stats, trend, and leaderboard.
+   */
+  async getGameDetail(gameType: GameType, date: string): Promise<GameDetailData> {
+    const sessions = await this.loadSessionsForGame(gameType);
+
+    // All user completed sessions
+    const userCompletedSessions = sessions.filter(
+      (s) => s.playerName === "self" && s.completed,
+    );
+
+    // 1. Find todaySession: user's completed session for the given date
+    const todaySession = userCompletedSessions.find((s) => s.date === date) ?? null;
+
+    // 2. Get today's metric value if exists
+    const todayMetric = todaySession ? getMetric(todaySession) : null;
+
+    // 3. Compute historyPercentile
+    const priorSessions = userCompletedSessions.filter((s) => s.date !== date);
+    let historyPercentile: number | null = null;
+    if (priorSessions.length >= 1 && todayMetric !== null) {
+      const priorMetrics = priorSessions.map(getMetric);
+      historyPercentile = computePercentile(todayMetric, priorMetrics);
+    }
+
+    // 4. Compute friendsPercentile
+    const friendsTodaySessions = sessions.filter(
+      (s) => s.playerName !== "self" && s.date === date && s.completed,
+    );
+    let friendsPercentile: number | null = null;
+    if (friendsTodaySessions.length > 0 && todayMetric !== null) {
+      const friendsTodayMetrics = friendsTodaySessions.map(getMetric);
+      friendsPercentile = computePercentile(todayMetric, friendsTodayMetrics);
+    }
+
+    // 5. Compute personalBest (minimum metric = best performance)
+    const allUserMetrics = userCompletedSessions.map(getMetric);
+    const personalBest = allUserMetrics.length > 0 ? Math.min(...allUserMetrics) : null;
+
+    // 6. Compute median
+    const median = computeMedian(allUserMetrics);
+
+    // 7. Total games
+    const totalGames = userCompletedSessions.length;
+
+    // 8. Compute trendValues (last 14 days ending at date, most recent last)
+    const trendDays = 14;
+    const trendValues: (number | null)[] = [];
+    const endDate = new Date(date + "T00:00:00");
+    for (let i = trendDays - 1; i >= 0; i--) {
+      const d = new Date(endDate);
+      d.setDate(d.getDate() - i);
+      const dayStr = d.toISOString().slice(0, 10);
+      const daySession = userCompletedSessions.find((s) => s.date === dayStr);
+      trendValues.push(daySession ? getMetric(daySession) : null);
+    }
+
+    // 9. Build leaderboard
+    const friendsSessionsByPlayer = new Map<string, GameSession[]>();
+    for (const s of sessions) {
+      if (s.playerName !== "self" && s.completed) {
+        const existing = friendsSessionsByPlayer.get(s.playerName) ?? [];
+        existing.push(s);
+        friendsSessionsByPlayer.set(s.playerName, existing);
+      }
+    }
+
+    const leaderboard = buildLeaderboard(
+      userCompletedSessions,
+      friendsSessionsByPlayer,
+      date,
+      gameType,
+    );
+
+    return {
+      gameType,
+      date,
+      todaySession,
+      historyPercentile,
+      friendsPercentile,
+      personalBest,
+      median,
+      totalGames,
+      trendValues,
+      trendDays,
+      leaderboard,
+    };
   }
 
   /** Get all sessions matching filter without a default limit */

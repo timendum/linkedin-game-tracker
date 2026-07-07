@@ -209,14 +209,9 @@ export interface ComparisonEntry {
 /** Message types for inter-component communication via chrome.runtime.sendMessage */
 export enum MessageType {
   GAME_RESULT = "game_result",
-  FRIENDS_RESULTS = "friends_results",
   LEADERBOARD_RESULTS = "leaderboard_results",
-  GET_STATS = "get_stats",
-  GET_SESSIONS = "get_sessions",
-  GET_COMPARISON = "get_comparison",
-  EXPORT_DATA = "export_data",
-  IMPORT_DATA = "import_data",
-  STORAGE_STATUS = "storage_status",
+  GET_TODAY_SUMMARY = "get_today_summary",
+  GET_GAME_DETAIL = "get_game_detail",
 }
 
 /** Payload for LEADERBOARD_RESULTS: bundles user + friends in one message to avoid race conditions */
@@ -225,4 +220,84 @@ export interface LeaderboardResultsPayload {
   userSession: GameSession | null;
   /** Friends' results extracted from the leaderboard */
   friendResults: FriendResult[];
+}
+
+/** Summary data for a single game on a given date */
+export interface GameDaySummary {
+  gameType: GameType;
+  /** User's completed session for the date, or null if not played */
+  userSession: GameSession | null;
+  /** Historical average metric (score for pinpoint, seconds for time-based) */
+  historicalAverage: number | null;
+  /** Count of prior completed sessions (excluding today) */
+  priorSessionCount: number;
+  /** Percentile rank (0–100) vs own history, null if < 5 prior sessions */
+  historicalPercentile: number | null;
+  /** Friends' completed sessions for the same date */
+  friendsSessions: GameSession[];
+}
+
+/** Response payload for GET_TODAY_SUMMARY */
+export interface TodaySummaryData {
+  date: string;
+  games: GameDaySummary[];
+}
+
+/**
+ * Head-to-head record between the user and a friend.
+ * Only counts days where both players completed the same game.
+ */
+export interface H2HRecord {
+  /** Number of days where user performed better (lower metric is better) */
+  wins: number;
+  /** Number of days where friend performed better */
+  losses: number;
+  /** Number of days where both had the same metric */
+  ties: number;
+}
+
+/**
+ * A single entry in the friends leaderboard table.
+ * The "You" row always appears first; friends are sorted by today's performance.
+ */
+export interface LeaderboardEntry {
+  /** Display name — "You" for the current user */
+  playerName: string;
+  /** Today's metric value (seconds or score), null if not yet played */
+  todayValue: number | null;
+  /** Median performance value across all completed sessions */
+  median: number | null;
+  /** Total number of completed games */
+  totalGames: number;
+  /** Head-to-head record vs the user, null for the user's own row */
+  h2h: H2HRecord | null;
+}
+
+/**
+ * Complete data payload for the per-game detail view.
+ * Returned by the background service worker in response to GET_GAME_DETAIL.
+ */
+export interface GameDetailData {
+  /** Which game this detail view is for */
+  gameType: GameType;
+  /** ISO 8601 date string for the current day */
+  date: string;
+  /** User's completed session for today, or null if not yet played */
+  todaySession: GameSession | null;
+  /** Percentile rank vs own history (0–100, higher = better), null if no prior sessions */
+  historyPercentile: number | null;
+  /** Percentile rank vs friends today (0–100, higher = better), null if no friends data */
+  friendsPercentile: number | null;
+  /** Best performance value ever recorded (seconds or score), null if no sessions */
+  personalBest: number | null;
+  /** Median performance value across all completed sessions, null if no sessions */
+  median: number | null;
+  /** Total number of completed games */
+  totalGames: number;
+  /** Daily metric values for the trend sparkline (most recent last), null = no data */
+  trendValues: (number | null)[];
+  /** Number of days the trend covers (typically 14) */
+  trendDays: number;
+  /** Friends leaderboard entries (self row first, then sorted by today's performance) */
+  leaderboard: LeaderboardEntry[];
 }

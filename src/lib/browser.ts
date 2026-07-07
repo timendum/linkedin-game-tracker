@@ -36,11 +36,16 @@ export interface BrowserDownloads {
   download(options: Record<string, unknown>): Promise<number>;
 }
 
+export interface BrowserTabs {
+  create(options: { url: string }): Promise<unknown>;
+}
+
 export interface BrowserAPI {
   storage: BrowserStorage;
   runtime: BrowserRuntime;
   notifications: BrowserNotifications;
   downloads: BrowserDownloads;
+  tabs: BrowserTabs;
 }
 
 // --- Environment Detection ---
@@ -163,7 +168,6 @@ function createChromeRuntime(): BrowserRuntime {
 }
 
 function createChromeNotifications(): BrowserNotifications {
-  // deno-lint-ignore no-explicit-any
   const api = getRawAPI();
   const notifications = api?.notifications;
 
@@ -185,7 +189,6 @@ function createChromeNotifications(): BrowserNotifications {
 }
 
 function createChromeDownloads(): BrowserDownloads {
-  // deno-lint-ignore no-explicit-any
   const api = getRawAPI();
   const downloads = api?.downloads;
 
@@ -205,18 +208,29 @@ function createChromeDownloads(): BrowserDownloads {
   };
 }
 
-// --- Factory ---
+function createChromeTabs(): BrowserTabs {
+  const api = getRawAPI();
+  const tabs = api?.tabs;
 
-function createBrowserAPI(): BrowserAPI {
   return {
+    create(options: { url: string }): Promise<unknown> {
+      if (isFirefox()) {
+        return tabs.create(options);
+      }
+      if (tabs?.create) {
+        return promisify<unknown>(tabs.create.bind(tabs), options);
+      }
+      return Promise.reject(new Error("tabs.create not available"));
+    },
+  };
+}
+
+
+/** Browser API for use throughout the codebase */
+export const browserAPI: BrowserAPI = {
     storage: createChromeStorage(),
     runtime: createChromeRuntime(),
     notifications: createChromeNotifications(),
     downloads: createChromeDownloads(),
+    tabs: createChromeTabs(),
   };
-}
-
-// --- Singleton Export ---
-
-/** Singleton browser API instance for use throughout the codebase */
-export const browserAPI: BrowserAPI = createBrowserAPI();
