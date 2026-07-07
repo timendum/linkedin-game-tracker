@@ -409,34 +409,11 @@ a:hover {
   color: #555555;
 }
 
-/* Percentile Pills */
-.percentile-pills {
+/* Percentile Pills container (game detail view) */
+.today-stats__pills {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-}
-
-.percentile-pill {
-  font-size: 12px;
-  font-weight: 500;
-  padding: 3px 10px;
-  border-radius: 12px;
-  white-space: nowrap;
-}
-
-.percentile-high {
-  background: #d4edda;
-  color: #155724;
-}
-
-.percentile-mid {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-
-.percentile-low {
-  background: #fff3cd;
-  color: #856404;
 }
 
 /* Personal Stats Row */

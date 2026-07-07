@@ -8,7 +8,12 @@
     "preact": "npm:preact@10.25.4",
     "preact/hooks": "npm:preact@10.25.4/hooks",
     "esbuild": "npm:esbuild@0.24.2",
-    "fast-check": "npm:fast-check@3.23.2"
+    "fast-check": "npm:fast-check@3.23.2",
+    "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@0.11",
+    "@std/fs/copy": "https://deno.land/std@0.224.0/fs/copy.ts",
+    "@std/fs/ensure-dir": "https://deno.land/std@0.224.0/fs/ensure_dir.ts",
+    "@std/path": "https://deno.land/std@0.224.0/path/mod.ts",
+    "@std/assert": "https://deno.land/std@0.224.0/assert/mod.ts"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

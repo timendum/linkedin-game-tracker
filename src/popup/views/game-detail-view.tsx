@@ -2,7 +2,7 @@
  * Game Detail View - Container Component
  *
  * Fetches game detail data from the background service worker and orchestrates
- * child components (GameHeader, PercentilePills, PersonalStatsRow, TrendSparkline,
+ * child components (GameHeader, TodayStats, PersonalStatsRow, TrendSparkline,
  * FriendsLeaderboard). Manages loading, error, empty, and data states.
  */
 
@@ -11,18 +11,7 @@ import type { GameDetailData, GameSession, GameType, LeaderboardEntry } from "..
 import { MessageType } from "../../lib/types.ts";
 import { browserAPI } from "../../lib/browser.ts";
 import { formatTodayResult, normalizeTrend, valueToBlock } from "../../lib/game-detail-utils.ts";
-import { GAME_URLS } from "../../lib/formatters.ts";
-
-const GAME_DISPLAY_NAMES: Record<GameType, string> = {
-  pinpoint: "Pinpoint",
-  queens: "Queens",
-  crossclimb: "Crossclimb",
-  tango: "Tango",
-  wend: "Wend",
-  patches: "Patches",
-  zip: "Zip",
-  sudoku: "Mini Sudoku",
-};
+import { buildPercentilePills, GAME_DISPLAY_NAMES, GAME_URLS } from "../../lib/formatters.ts";
 
 interface GameHeaderProps {
   gameName: string;
@@ -34,8 +23,6 @@ function GameHeader({ gameName, gameType, todaySession }: GameHeaderProps) {
   const isPlayed = todaySession !== null && todaySession.completed;
   const linkUrl = isPlayed ? `${GAME_URLS[gameType]}/results/` : GAME_URLS[gameType];
   const linkLabel = isPlayed ? "Results ↗" : "Play ↗";
-
-  const todayResult = isPlayed ? formatTodayResult(todaySession) : "Not played";
 
   const handleLinkClick = (e: Event) => {
     e.preventDefault();
@@ -50,38 +37,32 @@ function GameHeader({ gameName, gameType, todaySession }: GameHeaderProps) {
           {linkLabel}
         </a>
       </div>
-      <div class="game-header__today">
-        <strong>Today result</strong>{"  "}{todayResult}
-      </div>
     </div>
   );
 }
 
-interface PercentilePillsProps {
-  historyPercentile: number | null;
+interface TodayStatsProps {
+  todaySession: GameSession | null;
+  historyPercentile: number;
   friendsPercentile: number | null;
 }
 
-function PercentilePills({ historyPercentile, friendsPercentile }: PercentilePillsProps) {
-  if (historyPercentile === null && friendsPercentile === null) return null;
-
-  const getTierClass = (percentile: number): string => {
-    if (percentile >= 75) return "percentile-high";
-    if (percentile >= 50) return "percentile-mid";
-    return "percentile-low";
-  };
+function TodayStats({ todaySession, historyPercentile, friendsPercentile }: TodayStatsProps) {
+  const isPlayed = todaySession !== null && todaySession.completed;
+  const todayResult = isPlayed ? formatTodayResult(todaySession) : "Not played";
+  const pills = buildPercentilePills(historyPercentile, friendsPercentile);
 
   return (
-    <div class="percentile-pills">
-      {historyPercentile !== null && (
-        <span class={`percentile-pill ${getTierClass(historyPercentile)}`}>
-          🏆 Top {historyPercentile}% History
-        </span>
-      )}
-      {friendsPercentile !== null && (
-        <span class={`percentile-pill ${getTierClass(friendsPercentile)}`}>
-          👥 Top {friendsPercentile}% Friends
-        </span>
+    <div class="today-stats">
+      <div class="today-stats__result">
+        <strong>Today</strong> {todayResult}
+      </div>
+      {pills.length > 0 && (
+        <div class="today-stats__pills">
+          {pills.map((pill) => (
+            <span class={`today-card__pill ${pill.cssClass}`}>{pill.label}</span>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -264,7 +245,7 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
 
   return (
     <div class="game-detail">
-      <button class="back-btn" onClick={onBack}>← Back</button>
+      <button type="button" class="back-btn" onClick={onBack}>← Back</button>
 
       {loading && <div class="loading-indicator">Loading...</div>}
 
@@ -297,7 +278,8 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
             />
           </div>
           <div class="detail-card">
-            <PercentilePills
+            <TodayStats
+              todaySession={data.todaySession}
               historyPercentile={data.historyPercentile}
               friendsPercentile={data.friendsPercentile}
             />

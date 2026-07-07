@@ -231,8 +231,10 @@ export interface GameDaySummary {
   historicalAverage: number | null;
   /** Count of prior completed sessions (excluding today) */
   priorSessionCount: number;
-  /** Percentile rank (0–100) vs own history, null if < 5 prior sessions */
-  historicalPercentile: number | null;
+  /** Percentile rank (0–100) vs own history, 100 if no prior sessions */
+  historicalPercentile: number;
+  /** Percentile rank (0–100) vs friends today, null if no friends data */
+  friendsPercentile: number | null;
   /** Friends' completed sessions for the same date */
   friendsSessions: GameSession[];
 }
@@ -284,8 +286,8 @@ export interface GameDetailData {
   date: string;
   /** User's completed session for today, or null if not yet played */
   todaySession: GameSession | null;
-  /** Percentile rank vs own history (0–100, higher = better), null if no prior sessions */
-  historyPercentile: number | null;
+  /** Percentile rank vs own history (0–100, higher = better), defaults to 100 if no prior sessions */
+  historyPercentile: number;
   /** Percentile rank vs friends today (0–100, higher = better), null if no friends data */
   friendsPercentile: number | null;
   /** Best performance value ever recorded (seconds or score), null if no sessions */

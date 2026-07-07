@@ -12,7 +12,8 @@ Tango, Wend, Patches, Zip, Mini-Sudoku). Built with Deno + esbuild, outputs to `
 - **Build:** `deno task build` — bundles TypeScript via esbuild into `dist/`
 - **Type-check:** `deno task check`
 - **Test:** `deno task test`
-- **Format:** `deno fmt` (line width 100)
+- **Lint:** `just lint`
+- **Format:** `deno fmt`
 
 At the start of a terminal session, run a simple `cd <folder>` command first to confirm the working
 directory. Don't join the `cd` command with others commands like deno.
@@ -41,6 +42,7 @@ build.ts        – Deno + esbuild build script
 ## Validation & Testing
 
 - Always run `deno task check` after modifying TypeScript to catch type errors.
+- Run `just lint` to catch lint issues.
 - Run `deno task test` to verify existing tests still pass.
 - Run `deno task build` to confirm the extension bundles cleanly.
 

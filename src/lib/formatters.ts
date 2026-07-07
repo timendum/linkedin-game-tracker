@@ -116,3 +116,48 @@ export function formatDistance(
 export function formatPercentile(value: number): string {
   return `${value}%`;
 }
+
+/**
+ * Returns the CSS modifier class for a percentile pill based on tier thresholds.
+ * Uses a 5-tier system for consistent color coding across the extension.
+ */
+export function getPercentileTierClass(percentile: number): string {
+  if (percentile >= 90) return "pill--excellent";
+  if (percentile >= 75) return "pill--great";
+  if (percentile >= 50) return "pill--good";
+  if (percentile >= 25) return "pill--average";
+  return "pill--below";
+}
+
+/** Describes a single percentile pill to render. */
+export interface PercentilePill {
+  label: string;
+  cssClass: string;
+}
+
+/**
+ * Builds the array of percentile pills to display for a game result.
+ * Ensures consistent labels, formatting, and color tiers across all views.
+ */
+export function buildPercentilePills(
+  historyPercentile: number | null,
+  friendsPercentile: number | null,
+): PercentilePill[] {
+  const pills: PercentilePill[] = [];
+
+  if (historyPercentile !== null) {
+    pills.push({
+      label: `🏆 Top ${formatPercentile(historyPercentile)} all time`,
+      cssClass: getPercentileTierClass(historyPercentile),
+    });
+  }
+
+  if (friendsPercentile !== null) {
+    pills.push({
+      label: `👥 Top ${formatPercentile(friendsPercentile)} friends`,
+      cssClass: getPercentileTierClass(friendsPercentile),
+    });
+  }
+
+  return pills;
+}

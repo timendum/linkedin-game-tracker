@@ -81,25 +81,34 @@ export function computeMedian(values: number[]): number | null {
 }
 
 /**
- * Computes a percentile where higher = better.
- * Since lower game metric (time/score) is better, we count how many comparison
- * values are WORSE (higher) than the target value.
+ * Computes a percentile using "better or equal" semantics (lower metric = better).
+ * Counts how many comparison values the target value is better than or equal to.
  *
- * A result of 90 means "better than 90% of the comparison group".
+ * Supports two kinds:
+ * - "historical": compares today's result against own prior sessions.
+ *   Returns 100 if no comparison data (fallback = always best).
+ * - "friends": compares today's result against friends' sessions today.
+ *   Returns null if no comparison data (no friends to compare against).
  *
  * Preconditions:
  * - `targetValue` is a positive number (seconds or score)
  * - `comparisonValues` contains positive numbers of the same unit
  *
  * Postconditions:
- * - Returns integer in [0, 100]
+ * - Returns integer in [0, 100] or null (only for "friends" with empty comparison)
  * - Higher return value = better performance relative to comparison group
  */
-export function computePercentile(targetValue: number, comparisonValues: number[]): number {
-  if (comparisonValues.length === 0) return 0;
+export function computePercentile(
+  targetValue: number,
+  comparisonValues: number[],
+  kind: "historical" | "friends",
+): number | null {
+  if (comparisonValues.length === 0) {
+    return kind === "historical" ? 100 : null;
+  }
 
-  const worseThanTarget = comparisonValues.filter((v) => v > targetValue).length;
-  return Math.round((worseThanTarget / comparisonValues.length) * 100);
+  const betterOrEqual = comparisonValues.filter((v) => targetValue <= v).length;
+  return Math.round((betterOrEqual / comparisonValues.length) * 100);
 }
 
 /**

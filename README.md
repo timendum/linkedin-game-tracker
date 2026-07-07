@@ -2,7 +2,8 @@
 
 Browser extension that automatically tracks your LinkedIn game performance and displays statistics.
 
-Supports: **Pinpoint**, **Queens**, **Crossclimb**, **Tango**, **Wend**, **Patches**, **Zip**, and **Mini-Sudoku**.
+Supports: **Pinpoint**, **Queens**, **Crossclimb**, **Tango**, **Wend**, **Patches**, **Zip**, and
+**Mini-Sudoku**.
 
 ## How It Works
 
@@ -43,13 +44,16 @@ just check
 # run tests
 just test
 
+# lint sources
+just lint
+
 # format sources (line width 100)
 just fmt
 
 # verify formatting without writing changes
 just fmt-check
 
-# run all quality gates (typecheck + test + format check)
+# run all quality gates (typecheck + lint + test + format check)
 just ci
 
 # remove build outputs
@@ -70,15 +74,18 @@ deno task test
 2. Open `chrome://extensions` in Chrome.
 3. Enable **Developer mode** (toggle in the top-right).
 4. Click **Load unpacked** and select the `dist/` directory.
-5. Navigate to a LinkedIn game page, complete a game, and open the extension popup to see your stats.
+5. Navigate to a LinkedIn game page, complete a game, and open the extension popup to see your
+   stats.
 
 ## Permissions
 
-The extension requests only the `storage` permission — no network access, no host permissions beyond LinkedIn content script matching.
+The extension requests only the `storage` permission — no network access, no host permissions beyond
+LinkedIn content script matching.
 
 ## Testing
 
-Tests use Deno's built-in test runner. Test files are suffixed with `_test.ts` and live alongside the source they test.
+Tests use Deno's built-in test runner. Test files are suffixed with `_test.ts` and live alongside
+the source they test.
 
 ```sh
 just test

@@ -76,10 +76,7 @@ function getRawAPI(): any {
  * but this wrapper ensures consistent behavior across older versions.
  */
 // deno-lint-ignore no-explicit-any
-function promisify<T>(
-  fn: (...args: any[]) => void,
-  ...args: any[]
-): Promise<T> {
+function promisify<T>(fn: (...args: any[]) => void, ...args: any[]): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     fn(...args, (result: T) => {
       // deno-lint-ignore no-explicit-any
@@ -96,7 +93,6 @@ function promisify<T>(
 // --- Chrome/Edge Implementation ---
 
 function createChromeStorage(): BrowserStorage {
-  // deno-lint-ignore no-explicit-any
   const api = getRawAPI();
   const storageLocal = api?.storage?.local;
 
@@ -134,7 +130,6 @@ function createChromeStorage(): BrowserStorage {
 }
 
 function createChromeRuntime(): BrowserRuntime {
-  // deno-lint-ignore no-explicit-any
   const api = getRawAPI();
   const runtime = api?.runtime;
 
@@ -225,12 +220,11 @@ function createChromeTabs(): BrowserTabs {
   };
 }
 
-
 /** Browser API for use throughout the codebase */
 export const browserAPI: BrowserAPI = {
-    storage: createChromeStorage(),
-    runtime: createChromeRuntime(),
-    notifications: createChromeNotifications(),
-    downloads: createChromeDownloads(),
-    tabs: createChromeTabs(),
-  };
+  storage: createChromeStorage(),
+  runtime: createChromeRuntime(),
+  notifications: createChromeNotifications(),
+  downloads: createChromeDownloads(),
+  tabs: createChromeTabs(),
+};

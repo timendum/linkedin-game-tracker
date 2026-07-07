@@ -31,8 +31,12 @@ fmt-check:
   @echo "==> format check"
   deno fmt --check
 
+lint *ARGS:
+  @echo "==> lint"
+  deno lint {{ARGS}}
+
 # run all quality gates: typecheck + test + format check
-ci: check test fmt-check
+ci: check test fmt-check lint
 
 # removes build outputs
 clean:

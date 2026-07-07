@@ -7,7 +7,7 @@
 
 import type { GameDaySummary, GameSession, GameType, TodaySummaryData } from "../../lib/types.ts";
 import {
-  formatPercentile,
+  buildPercentilePills,
   formatTime,
   GAME_DISPLAY_NAMES,
   GAME_URLS,
@@ -59,36 +59,12 @@ export function TodaySummary({ data, onGameSelect }: TodaySummaryProps) {
 
 // --- Internal helpers ---
 
-function getMetric(session: GameSession): number {
-  if (session.gameType === "pinpoint") return session.score;
-  return session.completionTime;
-}
-
 function formatResult(session: GameSession): string {
   if (session.gameType === "pinpoint") {
     const plural = session.score === 1 ? "guess" : "guesses";
     return `${session.score} ${plural}`;
   }
   return formatTime(session.completionTime);
-}
-
-function computeFriendsPercentile(userMetric: number, friendsSessions: GameSession[]): number {
-  if (friendsSessions.length === 0) return 100;
-  const friendsBeaten = friendsSessions.filter((f) => userMetric <= getMetric(f)).length;
-  return Math.floor((friendsBeaten / friendsSessions.length) * 100);
-}
-
-function computeHistoricalPercentile(summary: GameDaySummary): number {
-  if (summary.priorSessionCount < 5 || summary.historicalPercentile === null) return 100;
-  return summary.historicalPercentile;
-}
-
-function getPercentileClass(percentile: number): string {
-  if (percentile >= 90) return "pill--excellent";
-  if (percentile >= 75) return "pill--great";
-  if (percentile >= 50) return "pill--good";
-  if (percentile >= 25) return "pill--average";
-  return "pill--below";
 }
 
 // --- Game Card Component ---
@@ -117,6 +93,7 @@ function GameCard({ summary, onGameSelect }: GameCardProps) {
           </a>
         </div>
         <button
+          type="button"
           class="today-card__cta"
           onClick={() => browserAPI.tabs.create({ url: GAME_URLS[summary.gameType] })}
         >
@@ -127,11 +104,8 @@ function GameCard({ summary, onGameSelect }: GameCardProps) {
   }
 
   const session = summary.userSession!;
-  const userMetric = getMetric(session);
-  const histPercentile = computeHistoricalPercentile(summary);
-  const friendsPercentile = summary.friendsSessions.length > 0
-    ? computeFriendsPercentile(userMetric, summary.friendsSessions)
-    : 0;
+  const histPercentile = summary.historicalPercentile;
+  const friendsPercentile = summary.friendsPercentile;
 
   return (
     <div class="today-card today-card--played">
@@ -160,12 +134,9 @@ function GameCard({ summary, onGameSelect }: GameCardProps) {
       </div>
 
       <div class="today-card__pills">
-        <span class={`today-card__pill ${getPercentileClass(histPercentile)}`}>
-          🏆 Top {formatPercentile(histPercentile)} all time
-        </span>
-        <span class={`today-card__pill ${getPercentileClass(friendsPercentile)}`}>
-          👥 Top {formatPercentile(friendsPercentile)} friends
-        </span>
+        {buildPercentilePills(histPercentile, friendsPercentile).map((pill) => (
+          <span class={`today-card__pill ${pill.cssClass}`}>{pill.label}</span>
+        ))}
       </div>
     </div>
   );

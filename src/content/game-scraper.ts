@@ -561,7 +561,7 @@ class NavigationMonitor {
   private static readonly POLL_INTERVAL_MS = 500;
 
   start(): void {
-    this.lastUrl = window.location.href;
+    this.lastUrl = globalThis.location.href;
     this.handleNavigation();
 
     // Intercept history.pushState and replaceState to detect SPA transitions
@@ -573,8 +573,8 @@ class NavigationMonitor {
 
     // Polling fallback — catches any navigation we might miss
     this.pollTimer = setInterval(() => {
-      if (window.location.href !== this.lastUrl) {
-        this.lastUrl = window.location.href;
+      if (globalThis.location.href !== this.lastUrl) {
+        this.lastUrl = globalThis.location.href;
         this.handleNavigation();
       }
     }, NavigationMonitor.POLL_INTERVAL_MS);
@@ -598,7 +598,7 @@ class NavigationMonitor {
    * and (re-)initializes the scraper if the game changed.
    */
   private handleNavigation(): void {
-    const url = window.location.href;
+    const url = globalThis.location.href;
     this.lastUrl = url;
     const gameType = detectGameType(url);
 

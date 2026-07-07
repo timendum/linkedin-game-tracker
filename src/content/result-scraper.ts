@@ -578,7 +578,7 @@ class ResultNavigationMonitor {
   private static readonly POLL_INTERVAL_MS = 500;
 
   start(): void {
-    this.lastUrl = window.location.href;
+    this.lastUrl = globalThis.location.href;
     this.handleNavigation();
 
     this.patchHistory("pushState");
@@ -587,8 +587,8 @@ class ResultNavigationMonitor {
     globalThis.addEventListener("popstate", () => this.handleNavigation());
 
     this.pollTimer = setInterval(() => {
-      if (window.location.href !== this.lastUrl) {
-        this.lastUrl = window.location.href;
+      if (globalThis.location.href !== this.lastUrl) {
+        this.lastUrl = globalThis.location.href;
         this.handleNavigation();
       }
     }, ResultNavigationMonitor.POLL_INTERVAL_MS);
@@ -604,7 +604,7 @@ class ResultNavigationMonitor {
   }
 
   private handleNavigation(): void {
-    const url = window.location.href;
+    const url = globalThis.location.href;
     this.lastUrl = url;
     const gameType = detectGameType(url);
 

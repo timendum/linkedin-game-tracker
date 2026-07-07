@@ -8,7 +8,7 @@
  * - Singleton export is available
  */
 
-import { assertEquals, assertExists } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals, assertExists } from "@std/assert";
 import type { BrowserAPI } from "./browser.ts";
 
 // --- Mock Helpers ---
@@ -70,56 +70,6 @@ function setupChromeMock() {
         callback: (downloadId: number) => void,
       ) {
         callback(42);
-      },
-    },
-  };
-
-  return storage;
-}
-
-function setupFirefoxMock() {
-  const storage: Record<string, unknown> = {};
-
-  // deno-lint-ignore no-explicit-any
-  (globalThis as any).browser = {
-    storage: {
-      local: {
-        QUOTA_BYTES: 10_485_760,
-        get(keys: string | string[]): Promise<Record<string, unknown>> {
-          const keyArr = Array.isArray(keys) ? keys : [keys];
-          const result: Record<string, unknown> = {};
-          for (const k of keyArr) {
-            if (k in storage) result[k] = storage[k];
-          }
-          return Promise.resolve(result);
-        },
-        set(items: Record<string, unknown>): Promise<void> {
-          Object.assign(storage, items);
-          return Promise.resolve();
-        },
-        getBytesInUse(_keys?: string | string[]): Promise<number> {
-          return Promise.resolve(JSON.stringify(storage).length);
-        },
-      },
-    },
-    runtime: {
-      sendMessage(message: unknown): Promise<unknown> {
-        return Promise.resolve({ echo: message });
-      },
-      onMessage: {
-        addListener(_callback: unknown) {
-          // no-op for test
-        },
-      },
-    },
-    notifications: {
-      create(_id: string, _options: Record<string, unknown>): Promise<string> {
-        return Promise.resolve("test-notification-id");
-      },
-    },
-    downloads: {
-      download(_options: Record<string, unknown>): Promise<number> {
-        return Promise.resolve(42);
       },
     },
   };

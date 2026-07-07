@@ -1,8 +1,8 @@
 import * as esbuild from "esbuild";
-import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@0.11";
-import { copy } from "https://deno.land/std@0.224.0/fs/copy.ts";
-import { ensureDir } from "https://deno.land/std@0.224.0/fs/ensure_dir.ts";
-import { resolve } from "https://deno.land/std@0.224.0/path/mod.ts";
+import { denoPlugins } from "@luca/esbuild-deno-loader";
+import { copy } from "@std/fs/copy";
+import { ensureDir } from "@std/fs/ensure-dir";
+import { resolve } from "@std/path";
 
 const entryPoints = [
   { in: "src/popup/main.tsx", out: "popup/main" },
