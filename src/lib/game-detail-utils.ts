@@ -215,7 +215,6 @@ export function buildLeaderboard(
     playerName: "You",
     todayValue: userTodayValue,
     median: computeMedian(userMetrics),
-    totalGames: userSessions.length,
     h2h: null,
   };
 
@@ -230,7 +229,6 @@ export function buildLeaderboard(
       playerName,
       todayValue: friendTodayValue,
       median: computeMedian(friendMetrics),
-      totalGames: friendSessions.length,
       h2h: computeH2H(userSessions, friendSessions),
     });
   }
@@ -242,7 +240,7 @@ export function buildLeaderboard(
     }
     if (a.todayValue !== null && b.todayValue === null) return -1;
     if (a.todayValue === null && b.todayValue !== null) return 1;
-    return a.totalGames - b.totalGames;
+    return 0;
   });
 
   return [youEntry, ...friendEntries];

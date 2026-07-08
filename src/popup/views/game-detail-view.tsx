@@ -71,11 +71,10 @@ function TodayStats({ todaySession, historyPercentile, friendsPercentile }: Toda
 interface PersonalStatsRowProps {
   personalBest: number | null;
   median: number | null;
-  totalGames: number;
   gameType: GameType;
 }
 
-function PersonalStatsRow({ personalBest, median, totalGames, gameType }: PersonalStatsRowProps) {
+function PersonalStatsRow({ personalBest, median, gameType }: PersonalStatsRowProps) {
   const isTimeBased = gameType !== "pinpoint";
 
   const formatValue = (value: number | null, isForPB: boolean): string => {
@@ -98,9 +97,6 @@ function PersonalStatsRow({ personalBest, median, totalGames, gameType }: Person
     <div class="personal-stats-row">
       <strong>Personal Best</strong> {formatValue(personalBest, true)}
       <strong>Median</strong> {formatValue(median, false)}
-      <span title="Number of Games">
-        <strong>Games</strong> {totalGames}
-      </span>
     </div>
   );
 }
@@ -125,9 +121,10 @@ function TrendSparkline({ values, days }: TrendSparklineProps) {
 interface FriendsLeaderboardProps {
   entries: LeaderboardEntry[];
   gameType: GameType;
+  dateColumnLabel: string;
 }
 
-function FriendsLeaderboard({ entries, gameType }: FriendsLeaderboardProps) {
+function FriendsLeaderboard({ entries, gameType, dateColumnLabel }: FriendsLeaderboardProps) {
   // Hide if only the "You" row exists (no friends data)
   if (entries.length <= 1) return null;
 
@@ -162,8 +159,8 @@ function FriendsLeaderboard({ entries, gameType }: FriendsLeaderboardProps) {
   };
   const formatH2HTitle = (
     h2h: { wins: number; losses: number; ties: number } | null,
-  ): string | null => {
-    if (h2h === null) return null;
+  ): string | undefined => {
+    if (h2h === null) return undefined;
     const tiers = [];
     if (h2h.wins > 0) tiers.push(`${h2h.wins} wins`);
     if (h2h.losses > 0) tiers.push(`${h2h.losses} loses`);
@@ -177,21 +174,21 @@ function FriendsLeaderboard({ entries, gameType }: FriendsLeaderboardProps) {
         <thead>
           <tr>
             <th>Player</th>
-            <th>Today</th>
+            <th title="Rank">#</th>
+            <th>{dateColumnLabel}</th>
             <th title="Median">Mdn</th>
-            <th title="Number of Games">Gms</th>
             <th title="Head to Head">H2H</th>
           </tr>
         </thead>
         <tbody>
-          {entries.map((entry) => (
+          {entries.map((entry, index) => (
             <tr key={entry.playerName} class={entry.playerName === "You" ? "you-row" : ""}>
               <td>{entry.playerName}</td>
+              <td>{index + 1}</td>
               <td>{formatTodayValue(entry.todayValue)}</td>
               <td>{formatMedian(entry.median)}</td>
-              <td>{entry.totalGames}</td>
               <td>
-                <span title={formatH2HTitle(entry.h2h) ?? undefined}>{formatH2H(entry.h2h)}</span>
+                <span title={formatH2HTitle(entry.h2h)}>{formatH2H(entry.h2h)}</span>
               </td>
             </tr>
           ))}
@@ -201,18 +198,99 @@ function FriendsLeaderboard({ entries, gameType }: FriendsLeaderboardProps) {
   );
 }
 
+interface DayNavigatorProps {
+  selectedDate: string | null;
+  onDateChange: (date: string | null) => void;
+}
+
+function DayNavigator({ selectedDate, onDateChange }: DayNavigatorProps) {
+  const today = Temporal.Now.plainDateISO();
+  const selected = selectedDate ? Temporal.PlainDate.from(selectedDate) : null;
+
+  const handlePrev = () => {
+    const base = selected ?? today;
+    onDateChange(base.subtract({ days: 1 }).toString());
+  };
+
+  const handleNext = () => {
+    if (selected === null) return;
+    const next = selected.add({ days: 1 });
+    if (Temporal.PlainDate.compare(next, today) >= 0) {
+      onDateChange(null);
+    } else {
+      onDateChange(next.toString());
+    }
+  };
+
+  const handleReset = () => {
+    onDateChange(null);
+  };
+
+  const isAtToday = selected === null;
+
+  return (
+    <div class="day-navigator">
+      <button
+        type="button"
+        class="day-navigator__btn"
+        onClick={handlePrev}
+        aria-label="Previous day"
+      >
+        ←
+      </button>
+      <span class="day-navigator__label">
+        {formatDateLabel((selected || today).toString())}
+      </span>
+      {isAtToday
+        ? (
+          <span class="day-navigator__btn day-navigator__btn--disabled" aria-disabled="true">
+            →
+          </span>
+        )
+        : (
+          <button
+            type="button"
+            class="day-navigator__btn"
+            onClick={handleNext}
+            aria-label="Next day"
+          >
+            →
+          </button>
+        )}
+      {!isAtToday && (
+        <button
+          type="button"
+          class="day-navigator__btn day-navigator__btn--reset"
+          onClick={handleReset}
+          aria-label="Back to summary"
+        >
+          Today
+        </button>
+      )}
+    </div>
+  );
+}
+
 interface GameDetailViewProps {
   gameType: GameType;
   onBack: () => void;
+}
+
+function formatDateLabel(dateStr: string): string {
+  const date = Temporal.PlainDate.from(dateStr);
+  return date.toLocaleString(undefined, { day: "2-digit", month: "2-digit" });
 }
 
 export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
   const [data, setData] = useState<GameDetailData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[] | null>(null);
 
+  // Fetch main data (always for today)
   useEffect(() => {
-    const todayDate = new Date().toISOString().split("T")[0];
+    const todayDate = Temporal.Now.plainDateISO().toString();
     let timedOut = false;
 
     const timeout = setTimeout(() => {
@@ -243,6 +321,32 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
     return () => clearTimeout(timeout);
   }, [gameType]);
 
+  // Fetch leaderboard for the selected date (only when navigating away from today)
+  useEffect(() => {
+    if (selectedDate === null) {
+      setLeaderboardEntries(null);
+      return;
+    }
+
+    browserAPI.runtime
+      .sendMessage({
+        type: MessageType.GET_GAME_DETAIL,
+        gameType,
+        date: selectedDate,
+      })
+      .then((response) => {
+        const detail = response as GameDetailData;
+        setLeaderboardEntries(detail.leaderboard);
+      })
+      .catch(() => {
+        // On error, fall back to the main data's leaderboard
+        setLeaderboardEntries(null);
+      });
+  }, [gameType, selectedDate]);
+
+  const dateColumnLabel = selectedDate === null ? "Today" : formatDateLabel(selectedDate);
+  const displayedLeaderboard = leaderboardEntries ?? (data?.leaderboard ?? []);
+
   return (
     <div class="game-detail">
       <button type="button" class="back-btn" onClick={onBack}>← Back</button>
@@ -251,15 +355,18 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
 
       {error && <p class="error-message">{error}</p>}
 
-      {data && data.totalGames === 0 && (
+      {data && (
+        <div class="detail-card">
+          <GameHeader
+            gameName={GAME_DISPLAY_NAMES[data.gameType]}
+            gameType={data.gameType}
+            todaySession={data.todaySession}
+          />
+        </div>
+      )}
+
+      {data && data.personalBest === null && (
         <>
-          <div class="detail-card">
-            <GameHeader
-              gameName={GAME_DISPLAY_NAMES[data.gameType]}
-              gameType={data.gameType}
-              todaySession={data.todaySession}
-            />
-          </div>
           <div class="detail-card">
             <p class="empty-state-message">
               No game data yet. Play a LinkedIn game to begin tracking.
@@ -268,15 +375,8 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
         </>
       )}
 
-      {data && data.totalGames > 0 && (
+      {data && data.personalBest !== null && (
         <>
-          <div class="detail-card">
-            <GameHeader
-              gameName={GAME_DISPLAY_NAMES[data.gameType]}
-              gameType={data.gameType}
-              todaySession={data.todaySession}
-            />
-          </div>
           <div class="detail-card">
             <TodayStats
               todaySession={data.todaySession}
@@ -286,11 +386,10 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
             <PersonalStatsRow
               personalBest={data.personalBest}
               median={data.median}
-              totalGames={data.totalGames}
               gameType={data.gameType}
             />
           </div>
-          {data.totalGames > 4 && (
+          {data.trendValues.filter((v) => v !== null).length > 4 && (
             <div class="detail-card">
               <TrendSparkline
                 values={data.trendValues}
@@ -300,8 +399,13 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
           )}
           <div class="detail-card">
             <FriendsLeaderboard
-              entries={data.leaderboard}
+              entries={displayedLeaderboard}
               gameType={data.gameType}
+              dateColumnLabel={dateColumnLabel}
+            />
+            <DayNavigator
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
             />
           </div>
         </>

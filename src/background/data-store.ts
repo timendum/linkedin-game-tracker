@@ -284,17 +284,12 @@ export class DataStore {
     // 6. Compute median
     const median = computeMedian(allUserMetrics);
 
-    // 7. Total games
-    const totalGames = userCompletedSessions.length;
-
-    // 8. Compute trendValues (last 14 days ending at date, most recent last)
+    // 7. Compute trendValues (last 14 days ending at date, most recent last)
     const trendDays = 14;
     const trendValues: (number | null)[] = [];
-    const endDate = new Date(date + "T00:00:00");
+    const endDate = Temporal.PlainDate.from(date);
     for (let i = trendDays - 1; i >= 0; i--) {
-      const d = new Date(endDate);
-      d.setDate(d.getDate() - i);
-      const dayStr = d.toISOString().slice(0, 10);
+      const dayStr = endDate.subtract({ days: i }).toString();
       const daySession = userCompletedSessions.find((s) => s.date === dayStr);
       trendValues.push(daySession ? getMetric(daySession) : null);
     }
@@ -324,7 +319,6 @@ export class DataStore {
       friendsPercentile,
       personalBest,
       median,
-      totalGames,
       trendValues,
       trendDays,
       leaderboard,

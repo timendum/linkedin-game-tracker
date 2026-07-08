@@ -163,8 +163,6 @@ export interface LeaderboardEntry {
   todayValue: number | null;
   /** Median performance value across all completed sessions */
   median: number | null;
-  /** Total number of completed games */
-  totalGames: number;
   /** Head-to-head record vs the user, null for the user's own row */
   h2h: H2HRecord | null;
 }
@@ -188,8 +186,6 @@ export interface GameDetailData {
   personalBest: number | null;
   /** Median performance value across all completed sessions, null if no sessions */
   median: number | null;
-  /** Total number of completed games */
-  totalGames: number;
   /** Daily metric values for the trend sparkline (most recent last), null = no data */
   trendValues: (number | null)[];
   /** Number of days the trend covers (typically 14) */

@@ -394,6 +394,8 @@ a:hover {
 /* Friends Leaderboard */
 .friends-leaderboard {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 300px;
 }
 
 .friends-leaderboard table {
@@ -419,6 +421,14 @@ a:hover {
 
 .friends-leaderboard .you-row {
   font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--color-brand) 14%, white);
+}
+
+.friends-leaderboard .you-row td:first-child {
+  font-weight: 700;
 }
 
 .friends-leaderboard tbody tr:nth-child(even) {
@@ -431,6 +441,51 @@ a:hover {
 
 .friends-leaderboard tbody tr:not(.you-row):hover {
   background: color-mix(in srgb, var(--color-brand) 8%, white);
+}
+
+/* Day Navigator */
+.day-navigator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.day-navigator__btn {
+  font-size: 13px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-brand);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.day-navigator__btn:hover {
+  background: var(--color-button-hover);
+  border-color: var(--color-brand);
+}
+
+.day-navigator__btn--disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
+
+.day-navigator__btn--reset {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.day-navigator__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  min-width: 90px;
+  text-align: center;
 }
 
 /* Loading & Error States */
