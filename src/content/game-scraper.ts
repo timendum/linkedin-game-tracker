@@ -9,6 +9,12 @@
 import { browserAPI } from "../lib/browser.ts";
 import { MessageType } from "../lib/types.ts";
 import type { GameSession, GameType } from "../lib/types.ts";
+import {
+  detectGameType,
+  getTodayISO,
+  NavigationMonitorBase,
+  parseTimeToSeconds,
+} from "./shared.ts";
 
 // --- Types ---
 
@@ -19,73 +25,6 @@ interface GameExtractor {
   extractDate(doc: Document): string | null;
   /** Extracts whether the game was completed successfully */
   extractStatus(doc: Document): boolean | null;
-}
-
-// --- URL Detection ---
-
-/** Detects the game type from the current page URL */
-function detectGameType(url: string): GameType | null {
-  const gamePatterns: Record<string, GameType> = {
-    "/games/pinpoint": "pinpoint",
-    "/games/queens": "queens",
-    "/games/crossclimb": "crossclimb",
-    "/games/tango": "tango",
-    "/games/wend": "wend",
-    "/games/patches": "patches",
-    "/games/zip": "zip",
-    "/games/mini-sudoku": "sudoku",
-  };
-
-  for (const [pattern, gameType] of Object.entries(gamePatterns)) {
-    if (url.includes(pattern)) {
-      return gameType;
-    }
-  }
-  return null;
-}
-
-// --- Time Parsing ---
-
-/**
- * Parses various time display formats into seconds.
- * Handles: "2:34", "2m 34s", "1:02:34", "34s", "0:34", "2m", "134"
- */
-function parseTimeToSeconds(timeStr: string): number | null {
-  if (!timeStr || typeof timeStr !== "string") return null;
-
-  const trimmed = timeStr.trim();
-
-  // Format: "Xm Ys" or "Xm" or "Ys"
-  const minsSecsMatch = trimmed.match(/^(?:(\d+)m)?\s*(?:(\d+)s)?$/);
-  if (minsSecsMatch && (minsSecsMatch[1] || minsSecsMatch[2])) {
-    const mins = parseInt(minsSecsMatch[1] || "0", 10);
-    const secs = parseInt(minsSecsMatch[2] || "0", 10);
-    return mins * 60 + secs;
-  }
-
-  // Format: "H:MM:SS" or "M:SS" or "0:SS"
-  const colonMatch = trimmed.match(/^(\d+):(\d{2})(?::(\d{2}))?$/);
-  if (colonMatch) {
-    if (colonMatch[3]) {
-      // H:MM:SS
-      const hours = parseInt(colonMatch[1], 10);
-      const mins = parseInt(colonMatch[2], 10);
-      const secs = parseInt(colonMatch[3], 10);
-      return hours * 3600 + mins * 60 + secs;
-    }
-    // M:SS
-    const mins = parseInt(colonMatch[1], 10);
-    const secs = parseInt(colonMatch[2], 10);
-    return mins * 60 + secs;
-  }
-
-  // Plain number (seconds)
-  const plainNum = parseInt(trimmed, 10);
-  if (!isNaN(plainNum) && plainNum > 0) {
-    return plainNum;
-  }
-
-  return null;
 }
 
 // --- Common Extraction Helpers ---
@@ -185,13 +124,6 @@ function extractStatusFromDOM(doc: Document): boolean | null {
 
   // No completion indicator found — game is still in progress
   return null;
-}
-
-// --- Date Helpers ---
-
-/** Returns today's date in ISO format */
-function getTodayISO(): string {
-  return new Date().toISOString().split("T")[0];
 }
 
 // --- Game-Specific Extractors ---
@@ -582,97 +514,30 @@ class GameScraper {
  * work continuously as the user browses between games without a full
  * page reload.
  */
-class NavigationMonitor {
+class GameNavigationMonitor extends NavigationMonitorBase {
   private currentScraper: GameScraper | null = null;
-  private currentGameType: GameType | null = null;
-  private lastUrl: string = "";
-  private pollTimer: ReturnType<typeof setInterval> | null = null;
-  /** Poll interval in ms — LinkedIn doesn't fire popstate for pushState navigations */
-  private static readonly POLL_INTERVAL_MS = 500;
 
-  start(): void {
-    this.lastUrl = globalThis.location.href;
-    this.handleNavigation();
-
-    // Intercept history.pushState and replaceState to detect SPA transitions
-    this.patchHistory("pushState");
-    this.patchHistory("replaceState");
-
-    // Listen for popstate (back/forward navigation)
-    globalThis.addEventListener("popstate", () => this.handleNavigation());
-
-    // Polling fallback — catches any navigation we might miss
-    this.pollTimer = setInterval(() => {
-      if (globalThis.location.href !== this.lastUrl) {
-        this.lastUrl = globalThis.location.href;
-        this.handleNavigation();
-      }
-    }, NavigationMonitor.POLL_INTERVAL_MS);
+  protected isScraperActive(): boolean {
+    return this.currentScraper !== null;
   }
 
-  /**
-   * Monkey-patches history.pushState/replaceState to fire a custom event
-   * so we can detect SPA navigations immediately.
-   */
-  private patchHistory(method: "pushState" | "replaceState"): void {
-    const original = history[method].bind(history);
-    history[method] = (...args: Parameters<typeof history.pushState>) => {
-      const result = original(...args);
-      this.handleNavigation();
-      return result;
-    };
-  }
-
-  /**
-   * Called on every detected navigation. Determines if we're on a game page,
-   * and (re-)initializes the scraper if the game changed.
-   */
-  private handleNavigation(): void {
-    const url = globalThis.location.href;
-    this.lastUrl = url;
-    const gameType = detectGameType(url);
-
-    if (gameType === this.currentGameType && this.currentScraper) {
-      // Same game page — scraper is already running, nothing to do
-      return;
-    }
-
-    // Clean up the previous scraper
-    const wasActive = this.currentScraper !== null;
-    this.destroyCurrent();
-
-    if (!gameType) {
-      // Not on a game page — no scraper needed
-      return;
-    }
-
-    // Start a new scraper for this game.
+  protected createScraper(gameType: GameType, wasActive: boolean): void {
     // If we had a previous scraper (SPA navigation between games), skip the
     // immediate initial check to avoid reading stale DOM from the prior game.
     console.log(`LinkedIn Games Tracker: game scraper activated for ${gameType}`);
-    this.currentGameType = gameType;
     this.currentScraper = new GameScraper(gameType);
     this.currentScraper.observe(/* skipInitialCheck */ wasActive);
   }
 
-  private destroyCurrent(): void {
+  protected destroyScraper(): void {
     if (this.currentScraper) {
       this.currentScraper.destroy();
       this.currentScraper = null;
-    }
-    this.currentGameType = null;
-  }
-
-  destroy(): void {
-    this.destroyCurrent();
-    if (this.pollTimer !== null) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
     }
   }
 }
 
 // --- Initialization ---
 
-const monitor = new NavigationMonitor();
+const monitor = new GameNavigationMonitor();
 monitor.start();

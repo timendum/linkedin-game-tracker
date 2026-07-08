@@ -242,7 +242,7 @@ export function buildLeaderboard(
     }
     if (a.todayValue !== null && b.todayValue === null) return -1;
     if (a.todayValue === null && b.todayValue !== null) return 1;
-    return 0;
+    return a.totalGames - b.totalGames;
   });
 
   return [youEntry, ...friendEntries];

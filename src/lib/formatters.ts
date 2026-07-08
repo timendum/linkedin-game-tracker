@@ -4,6 +4,7 @@
  */
 
 import type { GameType } from "./types.ts";
+export { GAME_URLS } from "./types.ts";
 
 /**
  * Formats a duration in seconds as a human-readable string.
@@ -50,18 +51,6 @@ export function formatCount(
 ): string {
   return `${count} ${gameType} games ${period}`;
 }
-
-/** LinkedIn game URLs keyed by game type. */
-export const GAME_URLS: Record<GameType, string> = {
-  pinpoint: "https://www.linkedin.com/games/pinpoint",
-  queens: "https://www.linkedin.com/games/queens",
-  crossclimb: "https://www.linkedin.com/games/crossclimb",
-  tango: "https://www.linkedin.com/games/tango",
-  wend: "https://www.linkedin.com/games/wend",
-  patches: "https://www.linkedin.com/games/patches",
-  zip: "https://www.linkedin.com/games/zip",
-  sudoku: "https://www.linkedin.com/games/mini-sudoku",
-};
 
 /** Human-friendly display names keyed by game type. */
 export const GAME_DISPLAY_NAMES: Record<GameType, string> = {

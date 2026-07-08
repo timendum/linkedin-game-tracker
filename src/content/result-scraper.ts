@@ -14,73 +14,12 @@
 import { browserAPI } from "../lib/browser.ts";
 import { MessageType } from "../lib/types.ts";
 import type { GameSession, GameType, LeaderboardResultsPayload } from "../lib/types.ts";
-
-// --- URL Detection ---
-
-/** Detects the game type from the current page URL */
-function detectGameType(url: string): GameType | null {
-  const gamePatterns: Record<string, GameType> = {
-    "/games/pinpoint": "pinpoint",
-    "/games/queens": "queens",
-    "/games/crossclimb": "crossclimb",
-    "/games/tango": "tango",
-    "/games/wend": "wend",
-    "/games/patches": "patches",
-    "/games/zip": "zip",
-    "/games/mini-sudoku": "sudoku",
-  };
-
-  for (const [pattern, gameType] of Object.entries(gamePatterns)) {
-    if (url.includes(pattern)) {
-      return gameType;
-    }
-  }
-  return null;
-}
-
-// --- Time Parsing ---
-
-/**
- * Parses time display formats into seconds.
- * Handles: "2:34", "0:34", "1:02:34"
- */
-function parseTimeToSeconds(timeStr: string): number | null {
-  if (!timeStr || typeof timeStr !== "string") return null;
-
-  const trimmed = timeStr.trim();
-
-  // Format: "H:MM:SS" or "M:SS" or "0:SS"
-  const colonMatch = trimmed.match(/^(\d+):(\d{2})(?::(\d{2}))?$/);
-  if (colonMatch) {
-    if (colonMatch[3]) {
-      // H:MM:SS
-      const hours = parseInt(colonMatch[1], 10);
-      const mins = parseInt(colonMatch[2], 10);
-      const secs = parseInt(colonMatch[3], 10);
-      return hours * 3600 + mins * 60 + secs;
-    }
-    // M:SS
-    const mins = parseInt(colonMatch[1], 10);
-    const secs = parseInt(colonMatch[2], 10);
-    return mins * 60 + secs;
-  }
-
-  return null;
-}
-
-// --- Date Helper ---
-
-/** Returns today's date in ISO format */
-function getTodayISO(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-/** Returns yesterday's date in ISO format */
-function getYesterdayISO(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().split("T")[0];
-}
+import {
+  getTodayISO,
+  getYesterdayISO,
+  NavigationMonitorBase,
+  parseTimeToSeconds,
+} from "./shared.ts";
 
 /**
  * Determines the effective date for the leaderboard currently displayed.
@@ -571,73 +510,23 @@ class ResultScraper {
  * Monitors LinkedIn SPA navigation and (re-)initializes the result scraper
  * whenever the user lands on a game page.
  */
-class ResultNavigationMonitor {
+class ResultNavigationMonitor extends NavigationMonitorBase {
   private currentScraper: ResultScraper | null = null;
-  private currentGameType: GameType | null = null;
-  private lastUrl: string = "";
-  private pollTimer: ReturnType<typeof setInterval> | null = null;
-  private static readonly POLL_INTERVAL_MS = 500;
 
-  start(): void {
-    this.lastUrl = globalThis.location.href;
-    this.handleNavigation();
-
-    this.patchHistory("pushState");
-    this.patchHistory("replaceState");
-
-    globalThis.addEventListener("popstate", () => this.handleNavigation());
-
-    this.pollTimer = setInterval(() => {
-      if (globalThis.location.href !== this.lastUrl) {
-        this.lastUrl = globalThis.location.href;
-        this.handleNavigation();
-      }
-    }, ResultNavigationMonitor.POLL_INTERVAL_MS);
+  protected isScraperActive(): boolean {
+    return this.currentScraper !== null;
   }
 
-  private patchHistory(method: "pushState" | "replaceState"): void {
-    const original = history[method].bind(history);
-    history[method] = (...args: Parameters<typeof history.pushState>) => {
-      const result = original(...args);
-      this.handleNavigation();
-      return result;
-    };
-  }
-
-  private handleNavigation(): void {
-    const url = globalThis.location.href;
-    this.lastUrl = url;
-    const gameType = detectGameType(url);
-
-    if (gameType === this.currentGameType && this.currentScraper) {
-      return;
-    }
-
-    this.destroyCurrent();
-
-    if (!gameType) {
-      return;
-    }
-
+  protected createScraper(gameType: GameType): void {
     console.log(`LinkedIn Games Tracker: result scraper activated for ${gameType}`);
-    this.currentGameType = gameType;
     this.currentScraper = new ResultScraper(gameType);
     this.currentScraper.observe();
   }
 
-  private destroyCurrent(): void {
+  protected destroyScraper(): void {
     if (this.currentScraper) {
       this.currentScraper.destroy();
       this.currentScraper = null;
-    }
-    this.currentGameType = null;
-  }
-
-  destroy(): void {
-    this.destroyCurrent();
-    if (this.pollTimer !== null) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
     }
   }
 }

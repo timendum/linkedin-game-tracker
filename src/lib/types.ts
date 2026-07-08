@@ -21,6 +21,33 @@ export type GameType =
   | "sudoku";
 
 /**
+ * Canonical mapping from URL path segments to GameType.
+ * This is the single source of truth for game ↔ URL relationships.
+ * Used by content scripts for detection and by the popup for linking.
+ */
+export const GAME_URL_PATHS: Record<string, GameType> = {
+  "/games/pinpoint": "pinpoint",
+  "/games/queens": "queens",
+  "/games/crossclimb": "crossclimb",
+  "/games/tango": "tango",
+  "/games/wend": "wend",
+  "/games/patches": "patches",
+  "/games/zip": "zip",
+  "/games/mini-sudoku": "sudoku",
+};
+
+/**
+ * Full LinkedIn game URLs keyed by game type.
+ * Derived from GAME_URL_PATHS — do not maintain separately.
+ */
+export const GAME_URLS: Record<GameType, string> = Object.fromEntries(
+  Object.entries(GAME_URL_PATHS).map(([path, gameType]) => [
+    gameType,
+    `https://www.linkedin.com${path}`,
+  ]),
+) as Record<GameType, string>;
+
+/**
  * Base fields shared by all game sessions.
  *
  * Composite key: gameType + date + playerName
