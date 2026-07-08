@@ -1,9 +1,9 @@
 /**
  * Data Store Module
  *
- * Manages persistence of game sessions using chrome.storage.local.
- * Sessions are sharded by game type — each game type gets its own storage key
- * (e.g. "sessions_pinpoint", "sessions_queens") for efficient partial reads.
+ * Manages persistence of game sessions using IndexedDB via the `idb` library.
+ * Sessions are stored in a single object store with a compound index on
+ * (gameType, date, playerName) for efficient querying and deduplication.
  *
  * Implements composite key deduplication (gameType + date + playerName)
  * and upsert semantics for all write operations.
@@ -20,7 +20,6 @@ import type {
   TodaySummaryData,
 } from "../lib/types.ts";
 
-import { browserAPI } from "../lib/browser.ts";
 import { VALID_GAME_TYPES } from "../lib/validators.ts";
 import {
   buildLeaderboard,
@@ -29,9 +28,22 @@ import {
   getMetric,
 } from "../lib/game-detail-utils.ts";
 
-/** Returns the storage key for a given game type's session shard */
-export function sessionStorageKey(gameType: GameType): string {
-  return `sessions_${gameType}`;
+import { type DBSchema, type IDBPDatabase, openDB } from "idb";
+
+/** Database name and version */
+const DB_NAME = "game-tracker";
+const DB_VERSION = 1;
+
+/** IndexedDB schema definition for type safety with idb */
+interface GameTrackerDB extends DBSchema {
+  sessions: {
+    key: string;
+    value: GameSession;
+    indexes: {
+      "by-game-type": GameType;
+      "by-composite": [GameType, string, string];
+    };
+  };
 }
 
 /** Builds a composite key string from the three key fields */
@@ -45,7 +57,7 @@ function compositeKey(
 
 /**
  * Reconstructs the correct discriminated union variant from raw storage data.
- * JSON deserialization loses type information, so we narrow based on gameType.
+ * IndexedDB preserves object structure, but we narrow for type safety.
  */
 function narrowSession(raw: Record<string, unknown>): GameSession {
   const gameType = raw.gameType as GameType;
@@ -70,54 +82,85 @@ function narrowSession(raw: Record<string, unknown>): GameSession {
 }
 
 export class DataStore {
-  /** Retrieve sessions for a single game type from its shard */
-  private async loadSessionsForGame(gameType: GameType): Promise<GameSession[]> {
-    const key = sessionStorageKey(gameType);
-    const data = await browserAPI.storage.get(key);
-    const raw = data[key];
-    if (!Array.isArray(raw)) {
-      return [];
+  private dbPromise: Promise<IDBPDatabase<GameTrackerDB>> | null = null;
+
+  /** Opens (or returns cached) database connection */
+  private getDB(): Promise<IDBPDatabase<GameTrackerDB>> {
+    if (!this.dbPromise) {
+      this.dbPromise = openDB<GameTrackerDB>(DB_NAME, DB_VERSION, {
+        upgrade(db) {
+          const store = db.createObjectStore("sessions", {
+            keyPath: undefined,
+          });
+          store.createIndex("by-game-type", "gameType", { unique: false });
+          store.createIndex("by-composite", ["gameType", "date", "playerName"], {
+            unique: true,
+          });
+        },
+      });
     }
-    return raw.map((item: Record<string, unknown>) => narrowSession(item));
+    return this.dbPromise;
   }
 
-  /** Persist sessions array for a single game type shard */
-  private async persistSessionsForGame(
-    gameType: GameType,
-    sessions: GameSession[],
-  ): Promise<void> {
-    await browserAPI.storage.set({ [sessionStorageKey(gameType)]: sessions });
+  /** Retrieve sessions for a single game type using the by-game-type index */
+  private async loadSessionsForGame(gameType: GameType): Promise<GameSession[]> {
+    const db = await this.getDB();
+    const raw = await db.getAllFromIndex("sessions", "by-game-type", gameType);
+    return raw.map((item) => narrowSession(item as unknown as Record<string, unknown>));
   }
 
   /**
-   * Save a single session with deduplication.
-   * If a session with the same composite key already exists, it is skipped
-   * (not overwritten) — this prevents re-scraping from counting a game twice.
-   * Import operations use importSessions() which has its own upsert logic.
+   * Save a list of sessions for the same game type with deduplication.
+   * If a session with the same composite key already exists, it is overwritten
+   * only when the metric value differs. Uses a single transaction for the batch.
    */
-  async saveSession(session: GameSession): Promise<SaveResult> {
-    console.log("saveSession", session);
-    try {
-      const sessions = await this.loadSessionsForGame(session.gameType);
-      const key = compositeKey(
-        session.gameType,
-        session.date,
-        session.playerName,
-      );
-      const existingIndex = sessions.findIndex(
-        (s) => compositeKey(s.gameType, s.date, s.playerName) === key,
-      );
+  async saveSession(incoming: GameSession[]): Promise<SaveResult[]> {
+    if (incoming.length === 0) return [];
 
-      if (existingIndex >= 0) {
-        // Already tracked — skip to prevent duplicate counting on revisit
-        return { success: true, overwritten: false };
+    const gameType = incoming[0].gameType;
+    console.log("saveSession", gameType, incoming.length, "sessions");
+
+    try {
+      const db = await this.getDB();
+      const tx = db.transaction("sessions", "readwrite");
+      const store = tx.store;
+      const index = store.index("by-composite");
+      const results: SaveResult[] = [];
+
+      for (const session of incoming) {
+        const key: [GameType, string, string] = [
+          session.gameType,
+          session.date,
+          session.playerName,
+        ];
+
+        const existingKey = await index.getKey(key);
+        const existing = existingKey != null ? await store.get(existingKey) : undefined;
+
+        if (existing) {
+          const existingNarrowed = narrowSession(
+            existing as unknown as Record<string, unknown>,
+          );
+          if (
+            existingNarrowed.completionTime !== session.completionTime ||
+            session.score !== existingNarrowed.score
+          ) {
+            await store.put(session, existingKey!);
+            results.push({ success: true, overwritten: true });
+          } else {
+            results.push({ success: true, overwritten: false });
+          }
+        } else {
+          const newKey = compositeKey(session.gameType, session.date, session.playerName);
+          await store.put(session, newKey);
+          results.push({ success: true, overwritten: false });
+        }
       }
 
-      sessions.push(session);
-      await this.persistSessionsForGame(session.gameType, sessions);
-      return { success: true, overwritten: false };
+      await tx.done;
+      return results;
     } catch {
-      return { success: false, overwritten: false };
+      return incoming.map(() => ({ success: false, overwritten: false }));
     }
   }
 

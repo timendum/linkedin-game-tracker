@@ -66,144 +66,11 @@ export interface TimeBasedSession extends GameSessionBase {
 /** A single completed play of a LinkedIn game (discriminated union on gameType) */
 export type GameSession = ScoreBasedSession | TimeBasedSession;
 
-/**
- * Base fields shared by all game statistics.
- * Statistics are computed on demand from stored sessions, not persisted.
- */
-export interface GameStatsBase {
-  gameType: GameType;
-  totalCompleted: number;
-  completionsLastMonth: number;
-  completionsThisYear: number;
-  lastCompletionDate: string | null;
-}
-
-/** Statistics for Pinpoint (score-based: average guesses) */
-export interface ScoreBasedStats extends GameStatsBase {
-  gameType: "pinpoint";
-  /** Average number of guesses (1–6), rounded to one decimal */
-  averageScore: number;
-  averageTime?: never;
-  bestTime?: never;
-}
-
-/** Statistics for time-based games (average and best completion time) */
-export interface TimeBasedStats extends GameStatsBase {
-  gameType:
-    | "queens"
-    | "crossclimb"
-    | "tango"
-    | "wend"
-    | "patches"
-    | "zip"
-    | "sudoku";
-  averageScore?: never;
-  /** Average completion time in seconds */
-  averageTime: number;
-  /** Fastest completion time in seconds */
-  bestTime: number;
-}
-
-/** Statistics derived from stored sessions for a given game type (discriminated union on gameType) */
-export type GameStats = ScoreBasedStats | TimeBasedStats;
-
-/** Filter criteria for querying game sessions */
-export interface SessionFilter {
-  gameType?: GameType;
-  /** ISO date — inclusive start of date range */
-  dateFrom?: string;
-  /** ISO date — inclusive end of date range */
-  dateTo?: string;
-  /** "self" or friend display name */
-  playerName?: string;
-  /** Maximum number of results to return */
-  limit?: number;
-}
-
-/** Result summary returned after an import operation completes */
-export interface ImportResult {
-  /** Records that matched existing composite keys and were replaced */
-  overwritten: number;
-  /** Records with new composite keys added to the store */
-  inserted: number;
-  /** Rows that failed parsing/validation */
-  skipped: number;
-  /** Non-null if import was interrupted by a failure */
-  error: string | null;
-}
-
 /** Result of a single session save operation */
 export interface SaveResult {
   success: boolean;
   /** True if an existing session with the same composite key was replaced */
   overwritten: boolean;
-}
-
-/** Base fields shared by all friend results */
-export interface FriendResultBase {
-  displayName: string;
-  gameType: GameType;
-  date: string;
-}
-
-/** A friend's Pinpoint result (guess count) */
-export interface ScoreBasedFriendResult extends FriendResultBase {
-  gameType: "pinpoint";
-  /** Number of guesses used (1–6) */
-  score: number;
-  completionTime?: never;
-}
-
-/** A friend's time-based game result */
-export interface TimeBasedFriendResult extends FriendResultBase {
-  gameType:
-    | "queens"
-    | "crossclimb"
-    | "tango"
-    | "wend"
-    | "patches"
-    | "zip"
-    | "sudoku";
-  score?: never;
-  /** Completion time in seconds */
-  completionTime: number;
-}
-
-/** A friend's game result extracted from the leaderboard DOM (discriminated union on gameType) */
-export type FriendResult = ScoreBasedFriendResult | TimeBasedFriendResult;
-
-/**
- * Schema for data stored in chrome.storage.local.
- *
- * Session data is sharded by game type under keys like "sessions_pinpoint",
- * "sessions_queens", etc. Each key holds a GameSession[] for that game type.
- */
-export interface StorageSchema {
-  last_export_date?: string;
-}
-
-/**
- * Comparison data for user vs friends performance.
- * Returned by getFriendsComparison for a given game type and date range.
- */
-export interface ComparisonData {
-  gameType: GameType;
-  dateRange: { from: string; to: string };
-  /** Participants ranked by performance (ascending metric — fewer guesses or lower time) */
-  rankings: ComparisonEntry[];
-}
-
-/** A single participant's performance entry in a comparison */
-export interface ComparisonEntry {
-  playerName: string;
-  /** Number of completed games in the date range */
-  gamesCompleted: number;
-  /** Average guesses for Pinpoint, null for time-based games */
-  averageScore: number | null;
-  /** Average completion time in seconds for time-based games, null for Pinpoint */
-  averageTime: number | null;
-  /** Best (lowest) completion time for time-based games, null for Pinpoint */
-  bestTime: number | null;
 }
 
 /** Message types for inter-component communication via chrome.runtime.sendMessage */
@@ -218,8 +85,8 @@ export enum MessageType {
 export interface LeaderboardResultsPayload {
   /** The current user's result from the "You" row, or null if not found */
   userSession: GameSession | null;
-  /** Friends' results extracted from the leaderboard */
-  friendResults: FriendResult[];
+  /** Friends' sessions extracted from the leaderboard */
+  friendSessions: GameSession[];
 }
 
 /** Summary data for a single game on a given date */

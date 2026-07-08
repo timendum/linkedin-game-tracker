@@ -22,7 +22,7 @@ async function build() {
     bundle: true,
     outdir: "dist",
     format: "esm",
-    target: "es2022",
+    target: "es2023",
     minify: false,
     sourcemap: false,
     jsx: "automatic",

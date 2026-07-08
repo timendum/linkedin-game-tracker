@@ -1,3 +1,36 @@
+/* Design Tokens */
+:root {
+  /* Brand */
+  --color-brand: #0a66c2;
+  --color-brand-bg: color-mix(in srgb, var(--color-brand) 10%, white);
+  --color-brand-surface: color-mix(in srgb, var(--color-brand) 3%, white);
+
+  /* Neutrals */
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #333333;
+  --color-text-muted: #555555;
+  --color-text-faint: #666666;
+  --color-bg: #ffffff;
+  --color-surface: #fafafa;
+  --color-border: #e0e0e0;
+  --color-button-border: #d0d0d0;
+  --color-button-hover: #f5f5f5;
+  --color-button-active: #e8e8e8;
+  --color-scrollbar: #cccccc;
+  --color-scrollbar-hover: #999999;
+
+  /* Semantic – status */
+  --color-error-text: #721c24;
+  --color-error-bg: #f8d7da;
+
+  /* Pill tiers – single base color per tier */
+  --pill-excellent: #28a745;
+  --pill-great: #17a2b8;
+  --pill-good: #5a5f9e;
+  --pill-average: #d4a017;
+  --pill-below: #c0392b;
+}
+
 /* Reset */
 * {
   margin: 0;
@@ -14,8 +47,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  background: #ffffff;
-  color: #1a1a1a;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 #app {
@@ -25,73 +58,11 @@ body {
   gap: 12px;
 }
 
-/* Header */
-.popup-header {
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.popup-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #0a66c2;
-}
-
-/* Sections */
-.section {
-  padding: 12px 0;
-}
-
-.section + .section {
-  border-top: 1px solid #f0f0f0;
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333333;
-}
-
-/* Stats section */
-#stats-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Sessions section */
-#sessions-content {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-/* Comparison section */
-#comparison-content {
-  overflow-x: auto;
-}
-
 /* Empty state */
-.empty-state-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 16px;
-  text-align: center;
-}
-
 .empty-state-message {
   font-size: 14px;
-  color: #666666;
+  color: var(--color-text-faint);
   line-height: 1.6;
-}
-
-/* Visibility toggle */
-.hidden {
-  display: none !important;
 }
 
 /* Accessible focus states */
@@ -99,7 +70,7 @@ button:focus,
 a:focus,
 select:focus,
 input:focus {
-  outline: 2px solid #0a66c2;
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 
@@ -108,41 +79,26 @@ button {
   font-family: inherit;
   font-size: 13px;
   padding: 8px 14px;
-  border: 1px solid #d0d0d0;
+  border: 1px solid var(--color-button-border);
   border-radius: 6px;
-  background: #ffffff;
-  color: #1a1a1a;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s;
 }
 
 button:hover {
-  background: #f5f5f5;
-  border-color: #0a66c2;
+  background: var(--color-button-hover);
+  border-color: var(--color-brand);
 }
 
 button:active {
-  background: #e8e8e8;
-}
-
-/* Primary button variant */
-button.primary {
-  background: #0a66c2;
-  color: #ffffff;
-  border-color: #0a66c2;
-}
-
-button.primary:hover {
-  background: #004182;
-}
-
-button.primary:active {
-  background: #003366;
+  background: var(--color-button-active);
 }
 
 /* Links */
 a {
-  color: #0a66c2;
+  color: var(--color-brand);
   text-decoration: none;
 }
 
@@ -160,12 +116,12 @@ a:hover {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cccccc;
+  background: var(--color-scrollbar);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #999999;
+  background: var(--color-scrollbar-hover);
 }
 
 /* Today Summary scrollable container */
@@ -183,20 +139,20 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 8px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .today-header__date {
   font-size: 15px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--color-text-primary);
 }
 
 .today-header__score {
   font-size: 15px;
   font-weight: 700;
-  color: #0a66c2;
-  background: #e8f4fd;
+  color: var(--color-brand);
+  background: var(--color-brand-bg);
   padding: 2px 10px;
   border-radius: 12px;
 }
@@ -211,7 +167,7 @@ a:hover {
 /* Today Card – base */
 .today-card {
   padding: 8px 10px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -220,12 +176,12 @@ a:hover {
 
 /* Today Card – played state */
 .today-card--played {
-  background: #f8fbff;
+  background: var(--color-brand-surface);
 }
 
 /* Today Card – unplayed state */
 .today-card--unplayed {
-  background: #fafafa;
+  background: var(--color-surface);
   opacity: 0.75;
 }
 
@@ -239,11 +195,11 @@ a:hover {
 .today-card__name {
   font-size: 14px;
   font-weight: 600;
-  color: #0a66c2;
+  color: var(--color-brand);
 }
 
 .today-card__name--link {
-  color: #0a66c2;
+  color: var(--color-brand);
   text-decoration: none;
   cursor: pointer;
 }
@@ -255,13 +211,13 @@ a:hover {
 .today-card__result {
   font-size: 13px;
   font-weight: 500;
-  color: #555555;
+  color: var(--color-text-muted);
 }
 
 .today-card__link {
   margin-left: auto;
   font-size: 12px;
-  color: #0a66c2;
+  color: var(--color-brand);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -288,28 +244,28 @@ a:hover {
 
 /* Pill color coding by percentile tier */
 .pill--excellent {
-  background: #d4edda;
-  color: #155724;
+  background: color-mix(in srgb, var(--pill-excellent) 18%, white);
+  color: color-mix(in srgb, var(--pill-excellent) 85%, black);
 }
 
 .pill--great {
-  background: #d1ecf1;
-  color: #0c5460;
+  background: color-mix(in srgb, var(--pill-great) 18%, white);
+  color: color-mix(in srgb, var(--pill-great) 85%, black);
 }
 
 .pill--good {
-  background: #e2e3f1;
-  color: #383d6e;
+  background: color-mix(in srgb, var(--pill-good) 18%, white);
+  color: color-mix(in srgb, var(--pill-good) 85%, black);
 }
 
 .pill--average {
-  background: #fff3cd;
-  color: #856404;
+  background: color-mix(in srgb, var(--pill-average) 18%, white);
+  color: color-mix(in srgb, var(--pill-average) 85%, black);
 }
 
 .pill--below {
-  background: #f5e6e6;
-  color: #721c24;
+  background: color-mix(in srgb, var(--pill-below) 18%, white);
+  color: color-mix(in srgb, var(--pill-below) 85%, black);
 }
 
 /* Today Card – Play CTA button */
@@ -320,15 +276,6 @@ a:hover {
   padding: 4px 12px;
 }
 
-/* Distance color utilities */
-.distance--better {
-  color: #1a7f37;
-}
-
-.distance--worse {
-  color: #cf222e;
-}
-
 /* Back button */
 .back-btn {
   font-size: 13px;
@@ -336,7 +283,7 @@ a:hover {
   margin-bottom: -8px;
   border: none;
   background: none;
-  color: #0a66c2;
+  color: var(--color-brand);
   cursor: pointer;
   font-weight: 500;
   text-align: left;
@@ -357,9 +304,9 @@ a:hover {
 /* Detail Card – section container */
 .detail-card {
   padding: 10px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #f8fbff;
+  background: var(--color-brand-surface);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -381,32 +328,20 @@ a:hover {
 .game-name {
   font-size: 18px;
   font-weight: 600;
-  color: #0a66c2;
+  color: var(--color-brand);
   margin: 0;
 }
 
 .game-header__link {
   font-size: 13px;
   font-weight: 500;
-  color: #0a66c2;
+  color: var(--color-brand);
   text-decoration: none;
   white-space: nowrap;
 }
 
 .game-header__link:hover {
   text-decoration: underline;
-}
-
-.game-header__today {
-  font-size: 14px;
-  font-weight: 500;
-  color: #555555;
-}
-
-.today-result {
-  font-size: 14px;
-  font-weight: 500;
-  color: #555555;
 }
 
 /* Percentile Pills container (game detail view) */
@@ -422,7 +357,7 @@ a:hover {
   align-items: center;
   gap: 16px;
   font-size: 13px;
-  color: #333333;
+  color: var(--color-text-secondary);
 }
 
 .personal-stats-row span {
@@ -431,7 +366,7 @@ a:hover {
 
 .personal-stats-row strong {
   font-weight: 600;
-  color: #555555;
+  color: var(--color-text-muted);
   margin-right: 4px;
 }
 
@@ -445,7 +380,7 @@ a:hover {
 .trend-label {
   font-size: 12px;
   font-weight: 500;
-  color: #666666;
+  color: var(--color-text-faint);
   white-space: nowrap;
 }
 
@@ -453,7 +388,7 @@ a:hover {
   font-family: "Courier New", Courier, monospace;
   font-size: 16px;
   letter-spacing: 1px;
-  color: #0a66c2;
+  color: var(--color-brand);
 }
 
 /* Friends Leaderboard */
@@ -470,15 +405,15 @@ a:hover {
 .friends-leaderboard th {
   text-align: left;
   font-weight: 600;
-  color: #555555;
+  color: var(--color-text-muted);
   padding: 4px 6px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
 
 .friends-leaderboard td {
   padding: 4px 6px;
-  color: #333333;
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
@@ -487,15 +422,15 @@ a:hover {
 }
 
 .friends-leaderboard tbody tr:nth-child(even) {
-  background: #f5f8fc;
+  background: color-mix(in srgb, var(--color-brand) 5%, white);
 }
 
 .friends-leaderboard tbody tr:nth-child(odd) {
-  background: #ffffff;
+  background: var(--color-bg);
 }
 
 .friends-leaderboard tbody tr:not(.you-row):hover {
-  background: #edf2f7;
+  background: color-mix(in srgb, var(--color-brand) 8%, white);
 }
 
 /* Loading & Error States */
@@ -503,13 +438,13 @@ a:hover {
   text-align: center;
   padding: 24px;
   font-size: 14px;
-  color: #666666;
+  color: var(--color-text-faint);
 }
 
 .error-message {
   padding: 12px;
   font-size: 13px;
-  color: #721c24;
-  background: #f8d7da;
+  color: var(--color-error-text);
+  background: var(--color-error-bg);
   border-radius: 6px;
 }

@@ -344,10 +344,18 @@ class GameScraper {
   /**
    * Starts observing the DOM for the completion state.
    * Uses a MutationObserver on the game container element.
+   *
+   * When skipInitialCheck is true (after SPA navigation), we skip the
+   * immediate DOM check and rely solely on the MutationObserver. This
+   * prevents capturing stale DOM from the previous game's view that
+   * hasn't been unmounted yet during SPA transitions.
    */
-  observe(): void {
-    // First, check if the game is already complete (page may have loaded with results)
-    this.checkAndExtract();
+  observe(skipInitialCheck = false): void {
+    // Check if the game is already complete (page may have loaded with results).
+    // Skipped after SPA navigation to avoid reading stale DOM from the previous game.
+    if (!skipInitialCheck) {
+      this.checkAndExtract();
+    }
 
     // Set up MutationObserver to detect when completion state renders
     this.observer = new MutationObserver((_mutations: MutationRecord[]) => {
@@ -422,6 +430,16 @@ class GameScraper {
   private extractionStarted = false;
 
   /**
+   * Verifies the current URL still matches this scraper's game type.
+   * Prevents reporting stale results if the user has navigated away
+   * before the extraction retry loop completed.
+   */
+  private isUrlStillValid(): boolean {
+    const currentGameType = detectGameType(globalThis.location.href);
+    return currentGameType === this.gameType;
+  }
+
+  /**
    * Checks DOM for completion state and extracts/reports if found.
    * Only triggers the extraction loop once completion is detected.
    * The actual extraction waits until the metric (time/score) is readable,
@@ -430,6 +448,11 @@ class GameScraper {
    */
   private checkAndExtract(): void {
     if (this.hasReported || this.extractionStarted) return;
+
+    // Guard: ensure the URL still matches this game type.
+    // During SPA transitions, stale DOM elements from the previous game
+    // can briefly appear before the new game's view mounts.
+    if (!this.isUrlStillValid()) return;
 
     // Check if the game appears to be in a completed state
     const status = extractors[this.gameType].extractStatus(document);
@@ -449,6 +472,13 @@ class GameScraper {
    */
   private attemptExtraction(): void {
     if (this.hasReported) return;
+
+    // Abort if the user navigated away from this game
+    if (!this.isUrlStillValid()) {
+      this.hasReported = true;
+      this.disconnect();
+      return;
+    }
 
     this.extractionAttempts++;
     const { metric, date, completed } = this.extractResult();
@@ -608,6 +638,7 @@ class NavigationMonitor {
     }
 
     // Clean up the previous scraper
+    const wasActive = this.currentScraper !== null;
     this.destroyCurrent();
 
     if (!gameType) {
@@ -615,11 +646,13 @@ class NavigationMonitor {
       return;
     }
 
-    // Start a new scraper for this game
+    // Start a new scraper for this game.
+    // If we had a previous scraper (SPA navigation between games), skip the
+    // immediate initial check to avoid reading stale DOM from the prior game.
     console.log(`LinkedIn Games Tracker: game scraper activated for ${gameType}`);
     this.currentGameType = gameType;
     this.currentScraper = new GameScraper(gameType);
-    this.currentScraper.observe();
+    this.currentScraper.observe(/* skipInitialCheck */ wasActive);
   }
 
   private destroyCurrent(): void {

@@ -10,6 +10,7 @@
     "jsr:@std/path@^1.0.6": "1.1.6",
     "npm:esbuild@0.24.2": "0.24.2",
     "npm:fast-check@3.23.2": "3.23.2",
+    "npm:idb@8.0.3": "8.0.3",
     "npm:preact@10.25.4": "10.25.4"
   },
   "jsr": {
@@ -207,6 +208,9 @@
         "pure-rand"
       ]
     },
+    "idb@8.0.3": {
+      "integrity": "sha512-LtwtVyVYO5BqRvcsKuB2iUMnHwPVByPCXFXOpuU96IZPPoPN6xjOGxZQ74pgSVVLQWtUOYgyeL4GE98BY5D3wg=="
+    },
     "preact@10.25.4": {
       "integrity": "sha512-jLdZDb+Q+odkHJ+MpW/9U5cODzqnB+fy2EiHSZES7ldV5LK7yjlVzTp7R8Xy6W6y75kfK8iWYtFVH7lvjwrCMA=="
     },
@@ -353,6 +357,7 @@
       "jsr:@luca/esbuild-deno-loader@0.11",
       "npm:esbuild@0.24.2",
       "npm:fast-check@3.23.2",
+      "npm:idb@8.0.3",
       "npm:preact@10.25.4"
     ]
   }

@@ -13,12 +13,7 @@
 
 import { browserAPI } from "../lib/browser.ts";
 import { MessageType } from "../lib/types.ts";
-import type {
-  FriendResult,
-  GameSession,
-  GameType,
-  LeaderboardResultsPayload,
-} from "../lib/types.ts";
+import type { GameSession, GameType, LeaderboardResultsPayload } from "../lib/types.ts";
 
 // --- URL Detection ---
 
@@ -179,8 +174,8 @@ class ResultScraper {
    * since LinkedIn may render the leaderboard in either location
    * depending on whether navigation was a full page load or SPA transition.
    */
-  extractFriendsResults(): FriendResult[] {
-    const results: FriendResult[] = [];
+  extractFriendsResults(): GameSession[] {
+    const results: GameSession[] = [];
     const docs = this.getSearchDocuments();
     const date = getLeaderboardDate(docs);
 
@@ -205,7 +200,7 @@ class ResultScraper {
         // Skip the current user's entry (handled separately)
         if (displayName === "You" || displayName === "") continue;
 
-        const result = this.buildFriendResult(displayName, scoreText, date);
+        const result = this.buildFriendSession(displayName, scoreText, date);
         if (result) {
           results.push(result);
         }
@@ -422,11 +417,11 @@ class ResultScraper {
 
     // --- Gather user result and friends ---
     const userSession = this.extractUserResult();
-    const friendResults = this.extractFriendsResults();
+    const friendSessions = this.extractFriendsResults();
 
     // Only send if we have something to report
-    if (userSession || friendResults.length > 0) {
-      this.reportLeaderboardResults(userSession, friendResults);
+    if (userSession || friendSessions.length > 0) {
+      this.reportLeaderboardResults(userSession, friendSessions);
     }
   }
 
@@ -438,9 +433,9 @@ class ResultScraper {
    */
   private async reportLeaderboardResults(
     userSession: GameSession | null,
-    friendResults: FriendResult[],
+    friendSessions: GameSession[],
   ): Promise<void> {
-    const payload: LeaderboardResultsPayload = { userSession, friendResults };
+    const payload: LeaderboardResultsPayload = { userSession, friendSessions };
     const message = {
       type: MessageType.LEADERBOARD_RESULTS,
       payload,
@@ -463,17 +458,17 @@ class ResultScraper {
   }
 
   /**
-   * Builds a FriendResult from extracted DOM data.
+   * Builds a GameSession from a friend's extracted DOM data.
    * Returns the correct discriminated union variant based on game type.
    * Returns null for non-playing friends or incomplete games:
    * - Pinpoint: score "–" (en-dash) means didn't complete
    * - Time-based: score "-:--" means started but didn't finish
    */
-  private buildFriendResult(
+  private buildFriendSession(
     displayName: string,
     scoreText: string,
     date: string,
-  ): FriendResult | null {
+  ): GameSession | null {
     // Skip friends who haven't completed:
     // - "–" (en-dash): Pinpoint player who didn't finish
     // - "-" or "—": alternative dash characters
@@ -488,14 +483,18 @@ class ResultScraper {
       return null;
     }
 
+    const scrapedAt = new Date().toISOString();
+
     if (this.gameType === "pinpoint") {
       // Pinpoint scores are plain numbers (1-6 guesses)
       const score = parseInt(scoreText, 10);
       if (isNaN(score) || score < 1 || score > 6) return null;
       return {
-        displayName,
         gameType: "pinpoint",
         date,
+        playerName: displayName,
+        completed: true,
+        scrapedAt,
         score,
       };
     }
@@ -505,9 +504,11 @@ class ResultScraper {
     if (completionTime === null || completionTime <= 0) return null;
 
     return {
-      displayName,
       gameType: this.gameType as Exclude<GameType, "pinpoint">,
       date,
+      playerName: displayName,
+      completed: true,
+      scrapedAt,
       completionTime,
     };
   }

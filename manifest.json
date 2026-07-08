@@ -3,7 +3,7 @@
   "name": "Games Tracker for LinkedIn",
   "version": "0.0.1",
   "description": "Automatically tracks your LinkedIn game performance and displays statistics.",
-  "permissions": ["storage"],
+  "permissions": [],
   "action": {
     "default_popup": "popup/index.html",
     "default_title": "LinkedIn Games Tracker"
