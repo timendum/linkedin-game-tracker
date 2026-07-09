@@ -124,6 +124,14 @@ interface FriendsLeaderboardProps {
   dateColumnLabel: string;
 }
 
+function computeRank(entry: LeaderboardEntry, allEntries: LeaderboardEntry[]): number | null {
+  if (entry.todayValue === null) return null;
+  const betterCount = allEntries.filter((e) =>
+    e.todayValue !== null && e.todayValue < entry.todayValue!
+  ).length;
+  return betterCount + 1;
+}
+
 function FriendsLeaderboard({ entries, gameType, dateColumnLabel }: FriendsLeaderboardProps) {
   // Hide if only the "You" row exists (no friends data)
   if (entries.length <= 1) return null;
@@ -181,17 +189,20 @@ function FriendsLeaderboard({ entries, gameType, dateColumnLabel }: FriendsLeade
           </tr>
         </thead>
         <tbody>
-          {entries.map((entry, index) => (
-            <tr key={entry.playerName} class={entry.playerName === "You" ? "you-row" : ""}>
-              <td>{entry.playerName}</td>
-              <td>{index + 1}</td>
-              <td>{formatTodayValue(entry.todayValue)}</td>
-              <td>{formatMedian(entry.median)}</td>
-              <td>
-                <span title={formatH2HTitle(entry.h2h)}>{formatH2H(entry.h2h)}</span>
-              </td>
-            </tr>
-          ))}
+          {entries.map((entry) => {
+            const rank = computeRank(entry, entries);
+            return (
+              <tr key={entry.playerName} class={entry.playerName === "You" ? "you-row" : ""}>
+                <td>{entry.playerName}</td>
+                <td>{rank ?? "—"}</td>
+                <td>{formatTodayValue(entry.todayValue)}</td>
+                <td>{formatMedian(entry.median)}</td>
+                <td>
+                  <span title={formatH2HTitle(entry.h2h)}>{formatH2H(entry.h2h)}</span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
