@@ -139,7 +139,7 @@ export function buildPercentilePills(
     pills.push({
       label: `🏆 Top ${formatPercentile(historyPercentile)} all time`,
       cssClass: getPercentileTierClass(historyPercentile),
-      key: "hist"
+      key: "hist",
     });
   }
 
@@ -147,7 +147,7 @@ export function buildPercentilePills(
     pills.push({
       label: `👥 Top ${formatPercentile(friendsPercentile)} friends`,
       cssClass: getPercentileTierClass(friendsPercentile),
-      key: "friends"
+      key: "friends",
     });
   }
 

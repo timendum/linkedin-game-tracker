@@ -67,6 +67,12 @@ async function handleMessage(
       return await dataStore.getGameDetail(gameType, date);
     }
 
+    case MessageType.GET_RANK_HISTORY: {
+      const gameType = message.gameType as GameType;
+      const days = (message.days as number) || 14;
+      return await dataStore.getRankHistory(gameType, days);
+    }
+
     default:
       return { error: `Unknown message type: ${message.type}` };
   }

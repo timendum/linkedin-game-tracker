@@ -447,6 +447,7 @@ a:hover {
 .day-navigator {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--color-border);
@@ -476,7 +477,6 @@ a:hover {
 }
 
 .day-navigator__btn--reset {
-  margin-left: auto;
   font-size: 12px;
 }
 
@@ -484,7 +484,7 @@ a:hover {
   font-size: 13px;
   font-weight: 500;
   color: var(--color-text-secondary);
-  min-width: 90px;
+  min-width: 50px;
   text-align: center;
 }
 
@@ -502,4 +502,69 @@ a:hover {
   color: var(--color-error-text);
   background: var(--color-error-bg);
   border-radius: 6px;
+}
+
+/* Rank Chart Button (inside day-navigator) */
+.day-navigator__chart-btn {
+  margin-left: auto;
+  font-size: 14px;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+/* Rank Chart Overlay */
+.rank-chart-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.rank-chart-container {
+  background: var(--color-bg);
+  border-radius: 10px;
+  padding: 14px;
+  width: 100%;
+  max-width: 390px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+}
+
+.rank-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rank-chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.rank-chart-close {
+  font-size: 16px;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.rank-chart-close:hover {
+  background: var(--color-button-hover);
+}
+
+.rank-chart-canvas-wrapper {
+  position: relative;
+  height: 260px;
+  width: 100%;
 }

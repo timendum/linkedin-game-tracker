@@ -1,17 +1,18 @@
 {
   "tasks": {
-    "build": "deno run --allow-read --allow-write --allow-env --allow-run build.ts",
+    "build": "deno run --allow-read --allow-write --allow-env build.ts",
     "check": "deno check src/**/*.ts src/**/*.tsx",
     "test": "deno test --allow-read --allow-write",
     "xlint": "deno run --allow-env --allow-ffi  oxlint"
   },
   "imports": {
-    "oxlint": "npm:oxlint@^1.73.0",
     "preact": "npm:preact@10.25.4",
     "preact/hooks": "npm:preact@10.25.4/hooks",
+    "idb": "npm:idb@8.0.3",
+    "chart.js": "npm:chart.js@4.4.7",
+    "oxlint": "npm:oxlint@^1.73.0",
     "esbuild": "npm:esbuild@0.24.2",
     "fast-check": "npm:fast-check@3.23.2",
-    "idb": "npm:idb@8.0.3",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@0.11",
     "@std/fs/copy": "https://deno.land/std@0.224.0/fs/copy.ts",
     "@std/fs/ensure-dir": "https://deno.land/std@0.224.0/fs/ensure_dir.ts",

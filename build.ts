@@ -11,7 +11,29 @@ const entryPoints = [
   { in: "src/background/service-worker.ts", out: "background/service-worker" },
 ];
 
+/** Recursively compute total byte size of a directory. */
+async function dirSize(path: string): Promise<number> {
+  let total = 0;
+  for await (const entry of Deno.readDir(path)) {
+    const fullPath = `${path}/${entry.name}`;
+    if (entry.isFile) {
+      const info = await Deno.stat(fullPath);
+      total += info.size;
+    } else if (entry.isDirectory) {
+      total += await dirSize(fullPath);
+    }
+  }
+  return total;
+}
+
 async function build() {
+  // Clean dist directory
+  try {
+    await Deno.remove("dist", { recursive: true });
+  } catch (err) {
+    if (!(err instanceof Deno.errors.NotFound)) throw err;
+  }
+
   // Ensure dist directory exists
   await ensureDir("dist");
 
@@ -55,8 +77,13 @@ async function build() {
   }
 
   esbuild.stop();
+
+  // Report sizes
   const distPath = resolve("dist");
+  const totalBytes = await dirSize(distPath);
+  const kb = (totalBytes / 1024).toFixed(1);
   console.log(`Build complete → ${distPath}`);
+  console.log(`  Size: ${kb} KB`);
 }
 
 build().catch((err) => {

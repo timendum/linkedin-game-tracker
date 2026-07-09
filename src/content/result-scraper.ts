@@ -391,7 +391,7 @@ class ResultScraper {
       } catch (e) {
         console.error(
           "LinkedIn Games Tracker: Failed to send leaderboard results to service worker after retry",
-          e
+          e,
         );
       }
     }

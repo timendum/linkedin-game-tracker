@@ -347,7 +347,7 @@ class GameScraper {
       } catch (e) {
         console.error(
           "LinkedIn Games Tracker: Failed to send game result to service worker after retry",
-          e
+          e,
         );
       }
     }

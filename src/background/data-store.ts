@@ -14,6 +14,8 @@ import type {
   GameDetailData,
   GameSession,
   GameType,
+  PlayerRankHistory,
+  RankHistoryData,
   SaveResult,
   ScoreBasedSession,
   TimeBasedSession,
@@ -324,5 +326,84 @@ export class DataStore {
       trendDays,
       leaderboard,
     };
+  }
+
+  /**
+   * Get rank history for all players over the last N days.
+   * Rank is computed daily: 1 = best metric, ties share the same rank.
+   * Players who didn't play on a given day get null rank.
+   */
+  async getRankHistory(gameType: GameType, days: number): Promise<RankHistoryData> {
+    const sessions = await this.loadSessionsForGame(gameType);
+    const today = Temporal.Now.plainDateISO();
+
+    // Build list of date strings
+    const dates: string[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      dates.push(today.subtract({ days: i }).toString());
+    }
+
+    // Collect all unique players
+    const playerSet = new Set<string>();
+    for (const s of sessions) {
+      if (s.completed) {
+        playerSet.add(s.playerName === "self" ? "You" : s.playerName);
+      }
+    }
+
+    // For each date, compute rank for all players who played that day
+    const ranksByDateAndPlayer = new Map<string, Map<string, number | null>>();
+
+    for (const date of dates) {
+      const daySessions = sessions.filter((s) => s.date === date && s.completed);
+
+      // Build metrics per player for this day
+      const playerMetrics: { name: string; metric: number }[] = [];
+      for (const s of daySessions) {
+        const name = s.playerName === "self" ? "You" : s.playerName;
+        playerMetrics.push({ name, metric: getMetric(s) });
+      }
+
+      // Sort by metric ascending (lower is better)
+      playerMetrics.sort((a, b) => a.metric - b.metric);
+
+      // Assign ranks with tied values sharing the same rank
+      const dayRanks = new Map<string, number | null>();
+      let currentRank = 1;
+      for (let i = 0; i < playerMetrics.length; i++) {
+        if (i > 0 && playerMetrics[i].metric !== playerMetrics[i - 1].metric) {
+          currentRank = i + 1;
+        }
+        dayRanks.set(playerMetrics[i].name, currentRank);
+      }
+
+      ranksByDateAndPlayer.set(date, dayRanks);
+    }
+
+    // Build the response
+    const players: PlayerRankHistory[] = [...playerSet].map((playerName) => ({
+      playerName,
+      ranks: dates.map((date) => ({
+        date,
+        rank: ranksByDateAndPlayer.get(date)?.get(playerName) ?? null,
+      })),
+    }));
+
+    // Trim leading days where no player has data
+    const dayCount = players[0]?.ranks.length ?? 0;
+    let firstDataIndex = 0;
+    for (let i = 0; i < dayCount; i++) {
+      if (players.some((p) => p.ranks[i].rank !== null)) {
+        firstDataIndex = i;
+        break;
+      }
+    }
+    if (firstDataIndex > 0) {
+      for (const p of players) {
+        p.ranks = p.ranks.slice(firstDataIndex);
+      }
+    }
+
+    return { gameType, days, players };
   }
 }

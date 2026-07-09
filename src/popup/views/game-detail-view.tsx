@@ -6,12 +6,38 @@
  * FriendsLeaderboard). Manages loading, error, empty, and data states.
  */
 
-import { useCallback, useEffect, useState } from "preact/hooks";
-import type { GameDetailData, GameSession, GameType, LeaderboardEntry } from "../../lib/types.ts";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import type {
+  GameDetailData,
+  GameSession,
+  GameType,
+  LeaderboardEntry,
+  RankHistoryData,
+} from "../../lib/types.ts";
 import { MessageType } from "../../lib/types.ts";
 import { browserAPI } from "../../lib/browser.ts";
 import { formatTodayResult, normalizeTrend, valueToBlock } from "../../lib/game-detail-utils.ts";
 import { buildPercentilePills, GAME_DISPLAY_NAMES, GAME_URLS } from "../../lib/formatters.ts";
+import {
+  CategoryScale,
+  Chart,
+  Legend,
+  LinearScale,
+  LineController,
+  LineElement,
+  PointElement,
+  Tooltip,
+} from "chart.js";
+
+Chart.register(
+  CategoryScale,
+  LinearScale,
+  LineController,
+  LineElement,
+  PointElement,
+  Legend,
+  Tooltip,
+);
 
 interface GameHeaderProps {
   gameName: string;
@@ -126,9 +152,8 @@ interface FriendsLeaderboardProps {
 
 function computeRank(entry: LeaderboardEntry, allEntries: LeaderboardEntry[]): number | null {
   if (entry.todayValue === null) return null;
-  const betterCount = allEntries.filter((e) =>
-    e.todayValue !== null && e.todayValue < entry.todayValue!
-  ).length;
+  const betterCount =
+    allEntries.filter((e) => e.todayValue !== null && e.todayValue < entry.todayValue!).length;
   return betterCount + 1;
 }
 
@@ -209,6 +234,134 @@ function FriendsLeaderboard({ entries, gameType, dateColumnLabel }: FriendsLeade
   );
 }
 
+/** Color palette for chart lines */
+const CHART_COLORS = [
+  "#0a66c2", // brand blue (You)
+  "#e63946",
+  "#2a9d8f",
+  "#e9c46a",
+  "#264653",
+  "#f4a261",
+  "#7209b7",
+  "#06d6a0",
+  "#ef476f",
+  "#118ab2",
+];
+
+interface RankChartProps {
+  gameType: GameType;
+  onClose: () => void;
+}
+
+function RankChart({ gameType, onClose }: RankChartProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartRef = useRef<Chart | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    browserAPI.runtime
+      .sendMessage({
+        type: MessageType.GET_RANK_HISTORY,
+        gameType,
+        days: 14,
+      })
+      .then((response) => {
+        const data = response as RankHistoryData;
+        setLoading(false);
+        if (!canvasRef.current) return;
+
+        // Destroy previous chart if any
+        if (chartRef.current) {
+          chartRef.current.destroy();
+        }
+
+        const labels = data.players[0]?.ranks.map((r) => {
+          const d = Temporal.PlainDate.from(r.date);
+          return d.toLocaleString(undefined, { day: "2-digit", month: "2-digit" });
+        }) ?? [];
+
+        // Sort players: "You" first, then alphabetical
+        const sortedPlayers = [...data.players].sort((a, b) => {
+          if (a.playerName === "You") return -1;
+          if (b.playerName === "You") return 1;
+          return a.playerName.localeCompare(b.playerName);
+        });
+
+        const datasets = sortedPlayers.map((player, i) => ({
+          label: player.playerName,
+          data: player.ranks.map((r) => r.rank),
+          borderColor: CHART_COLORS[i % CHART_COLORS.length],
+          backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
+          borderWidth: player.playerName === "You" ? 3 : 1.5,
+          tension: 0.3,
+          spanGaps: true,
+          pointStyle: "false",
+        }));
+
+        chartRef.current = new Chart(canvasRef.current, {
+          type: "line",
+          data: { labels, datasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                reverse: true,
+                beginAtZero: false,
+                min: 1,
+                title: { display: false, text: "Rank" },
+              },
+              x: {
+                title: { display: false, text: "Day" },
+              },
+            },
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                mode: "nearest",
+                axis: "xy",
+                intersect: false,
+              },
+            },
+          },
+        });
+        return;
+      })
+      .catch(() => {
+        setLoading(false);
+        setError("Failed to load rank history.");
+      });
+
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+    };
+  }, [gameType]);
+
+  return (
+    <div class="rank-chart-overlay">
+      <div class="rank-chart-container">
+        <div class="rank-chart-header">
+          <span class="rank-chart-title">Rank over time</span>
+          <button type="button" class="rank-chart-close" onClick={onClose} aria-label="Close chart">
+            ✕
+          </button>
+        </div>
+        {loading && <div class="loading-indicator">Loading chart...</div>}
+        {error && <p class="error-message">{error}</p>}
+        <div class="rank-chart-canvas-wrapper">
+          <canvas ref={canvasRef} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface DayNavigatorProps {
   selectedDate: string | null;
   onDateChange: (date: string | null) => void;
@@ -240,7 +393,7 @@ function DayNavigator({ selectedDate, onDateChange }: DayNavigatorProps) {
   const isAtToday = selected === null;
 
   return (
-    <div class="day-navigator">
+    <>
       <button
         type="button"
         class="day-navigator__btn"
@@ -278,7 +431,7 @@ function DayNavigator({ selectedDate, onDateChange }: DayNavigatorProps) {
           Today
         </button>
       )}
-    </div>
+    </>
   );
 }
 
@@ -300,6 +453,7 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[] | null>(null);
+  const [showChart, setShowChart] = useState(false);
 
   // Fetch main data (always for today)
   useEffect(() => {
@@ -363,6 +517,8 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
   const dateColumnLabel = selectedDate === null ? "Today" : formatDateLabel(selectedDate);
   const displayedLeaderboard = leaderboardEntries ?? (data?.leaderboard ?? NO_LEADERBOARD);
 
+  const closeChart = useCallback(() => setShowChart(false), [setShowChart]);
+  const clickChart = useCallback(() => setShowChart(true), [setShowChart]);
   return (
     <div class="game-detail">
       <button type="button" class="back-btn" onClick={onBack}>← Back</button>
@@ -419,11 +575,23 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
               gameType={data.gameType}
               dateColumnLabel={dateColumnLabel}
             />
-            <DayNavigator
-              selectedDate={selectedDate}
-              onDateChange={setSelectedDate}
-            />
+            <div class="day-navigator">
+              <DayNavigator
+                selectedDate={selectedDate}
+                onDateChange={setSelectedDate}
+              />
+              <button
+                type="button"
+                class="day-navigator__btn day-navigator__chart-btn"
+                onClick={clickChart}
+                aria-label="Show rank chart"
+                title="Rank chart"
+              >
+                📈
+              </button>
+            </div>
           </div>
+          {showChart && <RankChart gameType={data.gameType} onClose={closeChart} />}
         </>
       )}
     </div>

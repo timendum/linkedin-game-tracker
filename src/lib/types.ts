@@ -106,6 +106,7 @@ export enum MessageType {
   LEADERBOARD_RESULTS = "leaderboard_results",
   GET_TODAY_SUMMARY = "get_today_summary",
   GET_GAME_DETAIL = "get_game_detail",
+  GET_RANK_HISTORY = "get_rank_history",
 }
 
 /** Payload for LEADERBOARD_RESULTS: bundles user + friends in one message to avoid race conditions */
@@ -192,4 +193,30 @@ export interface GameDetailData {
   trendDays: number;
   /** Friends leaderboard entries (self row first, then sorted by today's performance) */
   leaderboard: LeaderboardEntry[];
+}
+
+/**
+ * A single player's rank on a given day. Null rank means the player didn't play.
+ */
+export interface DailyRank {
+  date: string;
+  rank: number | null;
+}
+
+/**
+ * Rank history for a single player across multiple days.
+ */
+export interface PlayerRankHistory {
+  playerName: string;
+  ranks: DailyRank[];
+}
+
+/**
+ * Response payload for GET_RANK_HISTORY.
+ * Contains rank data for all players over the requested number of days.
+ */
+export interface RankHistoryData {
+  gameType: GameType;
+  days: number;
+  players: PlayerRankHistory[];
 }
