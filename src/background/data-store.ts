@@ -125,37 +125,36 @@ export class DataStore {
       const tx = db.transaction("sessions", "readwrite");
       const store = tx.store;
       const index = store.index("by-composite");
-      const results: SaveResult[] = [];
+      const results = await Promise.all(
+        incoming.map(async (session): Promise<SaveResult> => {
+          const key: [GameType, string, string] = [
+            session.gameType,
+            session.date,
+            session.playerName,
+          ];
 
-      for (const session of incoming) {
-        const key: [GameType, string, string] = [
-          session.gameType,
-          session.date,
-          session.playerName,
-        ];
+          const existingKey = await index.getKey(key);
+          const existing = existingKey != null ? await store.get(existingKey) : undefined;
 
-        const existingKey = await index.getKey(key);
-        const existing = existingKey != null ? await store.get(existingKey) : undefined;
-
-        if (existing) {
-          const existingNarrowed = narrowSession(
-            existing as unknown as Record<string, unknown>,
-          );
-          if (
-            existingNarrowed.completionTime !== session.completionTime ||
-            session.score !== existingNarrowed.score
-          ) {
-            await store.put(session, existingKey!);
-            results.push({ success: true, overwritten: true });
-          } else {
-            results.push({ success: true, overwritten: false });
+          if (existing) {
+            const existingNarrowed = narrowSession(
+              existing as unknown as Record<string, unknown>,
+            );
+            if (
+              existingNarrowed.completionTime !== session.completionTime ||
+              session.score !== existingNarrowed.score
+            ) {
+              await store.put(session, existingKey!);
+              return { success: true, overwritten: true };
+            }
+            return { success: true, overwritten: false };
           }
-        } else {
+
           const newKey = compositeKey(session.gameType, session.date, session.playerName);
           await store.put(session, newKey);
-          results.push({ success: true, overwritten: false });
-        }
-      }
+          return { success: true, overwritten: false };
+        }),
+      );
 
       await tx.done;
       return results;
@@ -169,10 +168,12 @@ export class DataStore {
    * For each game: finds user session, friends sessions, computes historical average and percentile.
    */
   async getTodaySummary(date: string): Promise<TodaySummaryData> {
-    const games: GameDaySummary[] = [];
+    const sessionsByGame = await Promise.all(
+      VALID_GAME_TYPES.map((gameType) => this.loadSessionsForGame(gameType)),
+    );
 
-    for (const gameType of VALID_GAME_TYPES) {
-      const sessions = await this.loadSessionsForGame(gameType);
+    const games: GameDaySummary[] = VALID_GAME_TYPES.map((gameType, i) => {
+      const sessions = sessionsByGame[i];
 
       // Find user session for the date: prefer completed, otherwise any
       const userSessionsToday = sessions.filter(
@@ -229,7 +230,7 @@ export class DataStore {
         friendsPercentile = computePercentile(todayMetric, friendMetrics, "friends");
       }
 
-      games.push({
+      return {
         gameType,
         userSession,
         historicalAverage,
@@ -237,8 +238,8 @@ export class DataStore {
         historicalPercentile,
         friendsPercentile,
         friendsSessions,
-      });
-    }
+      };
+    });
 
     return { date, games };
   }

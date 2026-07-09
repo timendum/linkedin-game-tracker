@@ -2,9 +2,11 @@
   "tasks": {
     "build": "deno run --allow-read --allow-write --allow-env --allow-run build.ts",
     "check": "deno check src/**/*.ts src/**/*.tsx",
-    "test": "deno test --allow-read --allow-write"
+    "test": "deno test --allow-read --allow-write",
+    "xlint": "deno run --allow-env --allow-ffi  oxlint"
   },
   "imports": {
+    "oxlint": "npm:oxlint@^1.73.0",
     "preact": "npm:preact@10.25.4",
     "preact/hooks": "npm:preact@10.25.4/hooks",
     "esbuild": "npm:esbuild@0.24.2",

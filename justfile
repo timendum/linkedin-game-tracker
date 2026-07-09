@@ -34,6 +34,7 @@ fmt-check:
 lint *ARGS:
   @echo "==> lint"
   deno lint {{ARGS}}
+  deno run xlint {{ARGS}}
 
 # run all quality gates: typecheck + test + format check
 ci: check test fmt-check lint

@@ -8,13 +8,6 @@
 
 // --- Interfaces ---
 
-export interface BrowserStorage {
-  get(keys: string | string[]): Promise<Record<string, unknown>>;
-  set(items: Record<string, unknown>): Promise<void>;
-  getBytesInUse(keys?: string | string[]): Promise<number>;
-  QUOTA_BYTES: number;
-}
-
 export interface BrowserRuntime {
   sendMessage(message: unknown): Promise<unknown>;
   onMessage: {
@@ -32,19 +25,13 @@ export interface BrowserNotifications {
   create(id: string, options: Record<string, unknown>): Promise<string>;
 }
 
-export interface BrowserDownloads {
-  download(options: Record<string, unknown>): Promise<number>;
-}
-
 export interface BrowserTabs {
   create(options: { url: string }): Promise<unknown>;
 }
 
 export interface BrowserAPI {
-  storage: BrowserStorage;
   runtime: BrowserRuntime;
   notifications: BrowserNotifications;
-  downloads: BrowserDownloads;
   tabs: BrowserTabs;
 }
 
@@ -91,43 +78,6 @@ function promisify<T>(fn: (...args: any[]) => void, ...args: any[]): Promise<T> 
 }
 
 // --- Chrome/Edge Implementation ---
-
-function createChromeStorage(): BrowserStorage {
-  const api = getRawAPI();
-  const storageLocal = api?.storage?.local;
-
-  return {
-    get(keys: string | string[]): Promise<Record<string, unknown>> {
-      if (storageLocal?.get?.length === 1 || isFirefox()) {
-        // Promise-based (MV3 Chrome or Firefox)
-        return storageLocal.get(keys);
-      }
-      return promisify<Record<string, unknown>>(
-        storageLocal.get.bind(storageLocal),
-        keys,
-      );
-    },
-
-    set(items: Record<string, unknown>): Promise<void> {
-      if (storageLocal?.set?.length === 1 || isFirefox()) {
-        return storageLocal.set(items);
-      }
-      return promisify<void>(storageLocal.set.bind(storageLocal), items);
-    },
-
-    getBytesInUse(keys?: string | string[]): Promise<number> {
-      if (storageLocal?.getBytesInUse?.length <= 1 || isFirefox()) {
-        return storageLocal.getBytesInUse(keys);
-      }
-      return promisify<number>(
-        storageLocal.getBytesInUse.bind(storageLocal),
-        keys,
-      );
-    },
-
-    QUOTA_BYTES: api?.storage?.local?.QUOTA_BYTES ?? 10_485_760, // 10MB default
-  };
-}
 
 function createChromeRuntime(): BrowserRuntime {
   const api = getRawAPI();
@@ -183,26 +133,6 @@ function createChromeNotifications(): BrowserNotifications {
   };
 }
 
-function createChromeDownloads(): BrowserDownloads {
-  const api = getRawAPI();
-  const downloads = api?.downloads;
-
-  return {
-    download(options: Record<string, unknown>): Promise<number> {
-      if (isFirefox()) {
-        return downloads.download(options);
-      }
-      if (downloads?.download) {
-        return promisify<number>(
-          downloads.download.bind(downloads),
-          options,
-        );
-      }
-      return Promise.reject(new Error("downloads.download not available"));
-    },
-  };
-}
-
 function createChromeTabs(): BrowserTabs {
   const api = getRawAPI();
   const tabs = api?.tabs;
@@ -222,9 +152,7 @@ function createChromeTabs(): BrowserTabs {
 
 /** Browser API for use throughout the codebase */
 export const browserAPI: BrowserAPI = {
-  storage: createChromeStorage(),
   runtime: createChromeRuntime(),
   notifications: createChromeNotifications(),
-  downloads: createChromeDownloads(),
   tabs: createChromeTabs(),
 };

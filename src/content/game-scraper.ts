@@ -176,7 +176,7 @@ const extractors: Record<GameType, GameExtractor> = {
             }
           }
         }
-      } catch (_e) {
+      } catch {
         // localStorage access may fail in some contexts
       }
 
@@ -339,14 +339,15 @@ class GameScraper {
     try {
       console.log("Sending game", result);
       await browserAPI.runtime.sendMessage(message);
-    } catch (_error) {
+    } catch {
       // Retry once after 500ms delay
       await new Promise((resolve) => setTimeout(resolve, 500));
       try {
         await browserAPI.runtime.sendMessage(message);
-      } catch (_retryError) {
+      } catch (e) {
         console.error(
           "LinkedIn Games Tracker: Failed to send game result to service worker after retry",
+          e
         );
       }
     }

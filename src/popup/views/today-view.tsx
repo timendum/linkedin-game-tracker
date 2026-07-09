@@ -6,6 +6,8 @@
  */
 
 import type { GameDaySummary, GameSession, GameType, TodaySummaryData } from "../../lib/types.ts";
+import type { JSX } from "preact";
+import { useCallback } from "preact/hooks";
 import {
   buildPercentilePills,
   formatTime,
@@ -76,6 +78,19 @@ interface GameCardProps {
 
 function GameCard({ summary, onGameSelect }: GameCardProps) {
   const isCompleted = summary.userSession !== null && summary.userSession.completed;
+  const selectGame = useCallback((e: JSX.TargetedMouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    onGameSelect?.(summary.gameType);
+  }, [onGameSelect, summary]);
+  const openGame = useCallback(() => browserAPI.tabs.create({ url: GAME_URLS[summary.gameType] }), [
+    summary,
+  ]);
+  const openGameResults = useCallback(
+    () => browserAPI.tabs.create({ url: GAME_URLS[summary.gameType] + "/results/" }),
+    [
+      summary,
+    ],
+  );
 
   if (!isCompleted) {
     return (
@@ -84,10 +99,7 @@ function GameCard({ summary, onGameSelect }: GameCardProps) {
           <a
             class="today-card__name today-card__name--link"
             href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onGameSelect?.(summary.gameType);
-            }}
+            onClick={selectGame}
           >
             {GAME_DISPLAY_NAMES[summary.gameType]}
           </a>
@@ -95,7 +107,7 @@ function GameCard({ summary, onGameSelect }: GameCardProps) {
         <button
           type="button"
           class="today-card__cta"
-          onClick={() => browserAPI.tabs.create({ url: GAME_URLS[summary.gameType] })}
+          onClick={openGame}
         >
           Play
         </button>
@@ -113,10 +125,7 @@ function GameCard({ summary, onGameSelect }: GameCardProps) {
         <a
           class="today-card__name today-card__name--link"
           href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            onGameSelect?.(summary.gameType);
-          }}
+          onClick={selectGame}
         >
           {GAME_DISPLAY_NAMES[summary.gameType]}
         </a>
@@ -124,10 +133,7 @@ function GameCard({ summary, onGameSelect }: GameCardProps) {
         <a
           class="today-card__link"
           href={GAME_URLS[summary.gameType]}
-          onClick={(e) => {
-            e.preventDefault();
-            browserAPI.tabs.create({ url: GAME_URLS[summary.gameType] + "/results/" });
-          }}
+          onClick={openGameResults}
         >
           Results ↗
         </a>
@@ -135,7 +141,7 @@ function GameCard({ summary, onGameSelect }: GameCardProps) {
 
       <div class="today-card__pills">
         {buildPercentilePills(histPercentile, friendsPercentile).map((pill) => (
-          <span class={`today-card__pill ${pill.cssClass}`}>{pill.label}</span>
+          <span key={pill.key} class={`today-card__pill ${pill.cssClass}`}>{pill.label}</span>
         ))}
       </div>
     </div>

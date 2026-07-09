@@ -6,7 +6,7 @@
  * FriendsLeaderboard). Manages loading, error, empty, and data states.
  */
 
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import type { GameDetailData, GameSession, GameType, LeaderboardEntry } from "../../lib/types.ts";
 import { MessageType } from "../../lib/types.ts";
 import { browserAPI } from "../../lib/browser.ts";
@@ -24,10 +24,10 @@ function GameHeader({ gameName, gameType, todaySession }: GameHeaderProps) {
   const linkUrl = isPlayed ? `${GAME_URLS[gameType]}/results/` : GAME_URLS[gameType];
   const linkLabel = isPlayed ? "Results ↗" : "Play ↗";
 
-  const handleLinkClick = (e: Event) => {
+  const handleLinkClick = useCallback((e: Event) => {
     e.preventDefault();
     browserAPI.tabs.create({ url: linkUrl });
-  };
+  }, [linkUrl]);
 
   return (
     <div class="game-header-wrapper">
@@ -60,7 +60,7 @@ function TodayStats({ todaySession, historyPercentile, friendsPercentile }: Toda
       {pills.length > 0 && (
         <div class="today-stats__pills">
           {pills.map((pill) => (
-            <span class={`today-card__pill ${pill.cssClass}`}>{pill.label}</span>
+            <span key={pill.key} class={`today-card__pill ${pill.cssClass}`}>{pill.label}</span>
           ))}
         </div>
       )}
@@ -207,12 +207,12 @@ function DayNavigator({ selectedDate, onDateChange }: DayNavigatorProps) {
   const today = Temporal.Now.plainDateISO();
   const selected = selectedDate ? Temporal.PlainDate.from(selectedDate) : null;
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     const base = selected ?? today;
     onDateChange(base.subtract({ days: 1 }).toString());
-  };
+  }, [selected, today, onDateChange]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (selected === null) return;
     const next = selected.add({ days: 1 });
     if (Temporal.PlainDate.compare(next, today) >= 0) {
@@ -220,11 +220,11 @@ function DayNavigator({ selectedDate, onDateChange }: DayNavigatorProps) {
     } else {
       onDateChange(next.toString());
     }
-  };
+  }, [selected, onDateChange, today]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     onDateChange(null);
-  };
+  }, [onDateChange]);
 
   const isAtToday = selected === null;
 
@@ -281,6 +281,8 @@ function formatDateLabel(dateStr: string): string {
   return date.toLocaleString(undefined, { day: "2-digit", month: "2-digit" });
 }
 
+const NO_LEADERBOARD: LeaderboardEntry[] = [];
+
 export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
   const [data, setData] = useState<GameDetailData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -310,12 +312,14 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
         clearTimeout(timeout);
         setData(response as GameDetailData);
         setLoading(false);
+        return;
       })
       .catch(() => {
         if (timedOut) return;
         clearTimeout(timeout);
         setError("Unable to load game data. Please try again.");
         setLoading(false);
+        return;
       });
 
     return () => clearTimeout(timeout);
@@ -337,6 +341,7 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
       .then((response) => {
         const detail = response as GameDetailData;
         setLeaderboardEntries(detail.leaderboard);
+        return;
       })
       .catch(() => {
         // On error, fall back to the main data's leaderboard
@@ -345,7 +350,7 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
   }, [gameType, selectedDate]);
 
   const dateColumnLabel = selectedDate === null ? "Today" : formatDateLabel(selectedDate);
-  const displayedLeaderboard = leaderboardEntries ?? (data?.leaderboard ?? []);
+  const displayedLeaderboard = leaderboardEntries ?? (data?.leaderboard ?? NO_LEADERBOARD);
 
   return (
     <div class="game-detail">

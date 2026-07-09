@@ -96,11 +96,11 @@ class ResultScraper {
           if (iframe.contentDocument) {
             docs.push(iframe.contentDocument);
           }
-        } catch (_e) {
+        } catch {
           // Cross-origin iframe — skip
         }
       }
-    } catch (_e) {
+    } catch {
       // Ignore errors accessing iframes
     }
     return docs;
@@ -288,7 +288,7 @@ class ResultScraper {
 
           // Immediately check in case rows are already present
           this.debouncedCheckAndExtract();
-        } catch (_e) {
+        } catch {
           // Cross-origin iframe — skip
         }
       };
@@ -383,14 +383,15 @@ class ResultScraper {
 
     try {
       await browserAPI.runtime.sendMessage(message);
-    } catch (_error) {
+    } catch {
       // Retry once after 500ms delay
       await new Promise((resolve) => setTimeout(resolve, 500));
       try {
         await browserAPI.runtime.sendMessage(message);
-      } catch (_retryError) {
+      } catch (e) {
         console.error(
           "LinkedIn Games Tracker: Failed to send leaderboard results to service worker after retry",
+          e
         );
       }
     }

@@ -42,7 +42,8 @@ build.ts        – Deno + esbuild build script
 ## Validation & Testing
 
 - Always run `deno task check` after modifying TypeScript to catch type errors.
-- Run `just lint` to catch lint issues.
+- Run `deno lint` to catch lint issues.
+- Run `deno fmt` to format code.
 - Run `deno task test` to verify existing tests still pass.
 - Run `deno task build` to confirm the extension bundles cleanly.
 

@@ -122,6 +122,7 @@ export function getPercentileTierClass(percentile: number): string {
 export interface PercentilePill {
   label: string;
   cssClass: string;
+  key: string;
 }
 
 /**
@@ -138,6 +139,7 @@ export function buildPercentilePills(
     pills.push({
       label: `🏆 Top ${formatPercentile(historyPercentile)} all time`,
       cssClass: getPercentileTierClass(historyPercentile),
+      key: "hist"
     });
   }
 
@@ -145,6 +147,7 @@ export function buildPercentilePills(
     pills.push({
       label: `👥 Top ${formatPercentile(friendsPercentile)} friends`,
       cssClass: getPercentileTierClass(friendsPercentile),
+      key: "friends"
     });
   }
 
