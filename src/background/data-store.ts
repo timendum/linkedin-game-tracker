@@ -351,8 +351,9 @@ export class DataStore {
       }
     }
 
-    // For each date, compute rank for all players who played that day
+    // For each date, compute rank and metric value for all players who played that day
     const ranksByDateAndPlayer = new Map<string, Map<string, number | null>>();
+    const valuesByDateAndPlayer = new Map<string, Map<string, number | null>>();
 
     for (const date of dates) {
       const daySessions = sessions.filter((s) => s.date === date && s.completed);
@@ -369,15 +370,18 @@ export class DataStore {
 
       // Assign ranks with tied values sharing the same rank
       const dayRanks = new Map<string, number | null>();
+      const dayValues = new Map<string, number | null>();
       let currentRank = 1;
       for (let i = 0; i < playerMetrics.length; i++) {
         if (i > 0 && playerMetrics[i].metric !== playerMetrics[i - 1].metric) {
           currentRank = i + 1;
         }
         dayRanks.set(playerMetrics[i].name, currentRank);
+        dayValues.set(playerMetrics[i].name, playerMetrics[i].metric);
       }
 
       ranksByDateAndPlayer.set(date, dayRanks);
+      valuesByDateAndPlayer.set(date, dayValues);
     }
 
     // Build the response
@@ -386,6 +390,7 @@ export class DataStore {
       ranks: dates.map((date) => ({
         date,
         rank: ranksByDateAndPlayer.get(date)?.get(playerName) ?? null,
+        value: valuesByDateAndPlayer.get(date)?.get(playerName) ?? null,
       })),
     }));
 

@@ -201,6 +201,8 @@ export interface GameDetailData {
 export interface DailyRank {
   date: string;
   rank: number | null;
+  /** The raw metric value (score for pinpoint, seconds for time-based), null if not played */
+  value: number | null;
 }
 
 /**

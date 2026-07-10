@@ -6,6 +6,7 @@ import { resolve } from "@std/path";
 
 const entryPoints = [
   { in: "src/popup/main.tsx", out: "popup/main" },
+  { in: "src/chart/main.tsx", out: "chart/main" },
   { in: "src/content/game-scraper.ts", out: "content/game-scraper" },
   { in: "src/content/result-scraper.ts", out: "content/result-scraper" },
   { in: "src/background/service-worker.ts", out: "background/service-worker" },
@@ -54,6 +55,7 @@ async function build() {
 
   // Copy static assets to dist
   await ensureDir("dist/popup");
+  await ensureDir("dist/shared");
   try {
     await copy("src/popup/index.html", "dist/popup/index.html", {
       overwrite: true,
@@ -63,6 +65,30 @@ async function build() {
   }
   try {
     await copy("src/popup/styles.css", "dist/popup/styles.css", {
+      overwrite: true,
+    });
+  } catch {
+    // styles.css may not exist yet during initial scaffold
+  }
+  try {
+    await copy("src/shared/base.css", "dist/shared/base.css", {
+      overwrite: true,
+    });
+  } catch {
+    // base.css may not exist yet during initial scaffold
+  }
+
+  // Copy chart static assets to dist
+  await ensureDir("dist/chart");
+  try {
+    await copy("src/chart/index.html", "dist/chart/index.html", {
+      overwrite: true,
+    });
+  } catch {
+    // index.html may not exist yet during initial scaffold
+  }
+  try {
+    await copy("src/chart/styles.css", "dist/chart/styles.css", {
       overwrite: true,
     });
   } catch {

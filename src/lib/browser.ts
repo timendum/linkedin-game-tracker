@@ -10,6 +10,7 @@
 
 export interface BrowserRuntime {
   sendMessage(message: unknown): Promise<unknown>;
+  getURL(path: string): string;
   onMessage: {
     addListener(
       callback: (
@@ -96,6 +97,10 @@ function createChromeRuntime(): BrowserRuntime {
         );
       }
       return Promise.reject(new Error("runtime.sendMessage not available"));
+    },
+
+    getURL(path: string): string {
+      return runtime?.getURL?.(path) ?? path;
     },
 
     onMessage: {

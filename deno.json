@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "build": "deno run --allow-read --allow-write --allow-env build.ts",
+    "build": "deno run --allow-read --allow-write --allow-env --allow-run build.ts",
     "check": "deno check src/**/*.ts src/**/*.tsx",
     "test": "deno test --allow-read --allow-write",
     "xlint": "deno run --allow-env --allow-ffi  oxlint"

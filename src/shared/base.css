@@ -1,0 +1,127 @@
+/* ============================================
+   Base CSS – shared tokens, reset, typography
+   ============================================ */
+
+/* Design Tokens */
+:root {
+  /* Brand */
+  --color-brand: #0a66c2;
+  --color-brand-bg: color-mix(in srgb, var(--color-brand) 10%, white);
+  --color-brand-surface: color-mix(in srgb, var(--color-brand) 3%, white);
+
+  /* Neutrals */
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #333333;
+  --color-text-muted: #555555;
+  --color-text-faint: #666666;
+  --color-bg: #ffffff;
+  --color-surface: #fafafa;
+  --color-border: #e0e0e0;
+  --color-button-border: #d0d0d0;
+  --color-button-hover: #f5f5f5;
+  --color-button-active: #e8e8e8;
+  --color-scrollbar: #cccccc;
+  --color-scrollbar-hover: #999999;
+
+  /* Semantic – status */
+  --color-error-text: #721c24;
+  --color-error-bg: #f8d7da;
+
+  /* Pill tiers */
+  --pill-excellent: #28a745;
+  --pill-great: #17a2b8;
+  --pill-good: #5a5f9e;
+  --pill-average: #d4a017;
+  --pill-below: #c0392b;
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Base typography */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+/* Accessible focus states */
+button:focus,
+a:focus,
+select:focus,
+input:focus {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* Button base */
+button {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+button:hover {
+  background: var(--color-button-hover);
+  border-color: var(--color-brand);
+}
+
+button:active {
+  background: var(--color-button-active);
+}
+
+/* Links */
+a {
+  color: var(--color-brand);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
+}
+
+/* Common utility states */
+.loading-indicator {
+  text-align: center;
+  padding: 24px;
+  font-size: 14px;
+  color: var(--color-text-faint);
+}
+
+.error-message {
+  padding: 12px;
+  font-size: 13px;
+  color: var(--color-error-text);
+  background: var(--color-error-bg);
+  border-radius: 6px;
+}
