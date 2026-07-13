@@ -10,8 +10,8 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 import type { GameDetailData, GameSession, GameType, LeaderboardEntry } from "../../lib/types.ts";
 import { MessageType } from "../../lib/types.ts";
 import { browserAPI } from "../../lib/browser.ts";
-import { formatTodayResult, normalizeTrend, valueToBlock } from "../../lib/game-detail-utils.ts";
-import { buildPercentilePills, GAME_DISPLAY_NAMES, GAME_URLS } from "../../lib/formatters.ts";
+import { formatTodayResult, normalizeTrend } from "../../lib/game-detail-utils.ts";
+import { buildPercentilePills, formatTime, GAME_DISPLAY_NAMES, GAME_URLS } from "../../lib/formatters.ts";
 
 interface GameHeaderProps {
   gameName: string;
@@ -104,16 +104,32 @@ function PersonalStatsRow({ personalBest, median, gameType }: PersonalStatsRowPr
 interface TrendSparklineProps {
   values: (number | null)[];
   days: number;
+  gameType: GameType;
 }
 
-function TrendSparkline({ values, days }: TrendSparklineProps) {
+function TrendSparkline({ values, days, gameType }: TrendSparklineProps) {
   const normalized = normalizeTrend(values);
-  const blocks = normalized.map(valueToBlock).join("");
+  const isTimeBased = gameType !== "pinpoint";
 
   return (
     <div class="trend-sparkline">
       <span class="trend-label">{days}d Trend</span>
-      <span class="trend-blocks">{blocks}</span>
+      <span class="trend-blocks">
+        {normalized.map((v, i) => {
+          const raw = values[i];
+          const tooltip = raw !== null
+            ? (isTimeBased ? formatTime(raw) : String(raw))
+            : undefined;
+          return (
+            <span
+              key={i}
+              class={`trend-bar${v === null ? " trend-bar--gap" : ""}`}
+              style={v !== null ? { height: `${((v + 1) / 8) * 100}%` } : undefined}
+              title={tooltip}
+            />
+          );
+        })}
+      </span>
     </div>
   );
 }
@@ -413,6 +429,7 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
               <TrendSparkline
                 values={data.trendValues}
                 days={data.trendDays}
+                gameType={data.gameType}
               />
             </div>
           )}

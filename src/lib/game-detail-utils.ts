@@ -7,12 +7,9 @@
 
 import type { GameSession, GameType, H2HRecord, LeaderboardEntry } from "./types.ts";
 
-/** Unicode block characters for sparkline rendering, indexed 0 (shortest) to 7 (tallest). */
-export const SPARKLINE_BLOCKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] as const;
-
 /**
  * Normalizes an array of values to a 0-7 integer scale for sparkline rendering.
- * Lower values map to HIGHER bars (faster time = better = taller bar).
+ * Lower values map to SHORTER bars (faster time = better = shorter bar).
  *
  * Preconditions:
  * - `values` is an array of length 1–14
@@ -22,7 +19,7 @@ export const SPARKLINE_BLOCKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇"
  * - Output array has same length as input
  * - Null entries remain null
  * - Non-null entries are integers in range [0, 7]
- * - Lower input values produce higher output values (inverted for "better = taller")
+ * - Lower input values produce lower output values (better = shorter bar)
  */
 export function normalizeTrend(values: (number | null)[]): (number | null)[] {
   const defined = values.filter((v): v is number => v !== null);
@@ -35,26 +32,9 @@ export function normalizeTrend(values: (number | null)[]): (number | null)[] {
   return values.map((v) => {
     if (v === null) return null;
     if (range === 0) return 4; // all same value → middle height
-    // Invert: lower value = taller bar
-    const normalized = 1 - (v - min) / range;
+    const normalized = (v - min) / range;
     return Math.round(normalized * 7);
   });
-}
-
-/**
- * Maps a normalized integer (0-7) to its corresponding Unicode block character.
- * Returns a thin space (U+2009) for null values to represent gaps.
- *
- * Preconditions:
- * - `normalizedValue` is null or integer in [0, 7]
- *
- * Postconditions:
- * - Returns exactly one character
- * - Index 0 maps to shortest block, index 7 to tallest
- */
-export function valueToBlock(normalizedValue: number | null): string {
-  if (normalizedValue === null) return "\u2009"; // thin space for gap
-  return SPARKLINE_BLOCKS[normalizedValue];
 }
 
 /**

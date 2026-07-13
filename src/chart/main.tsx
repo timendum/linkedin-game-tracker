@@ -70,6 +70,7 @@ function ChartPage() {
       })
       .then((response) => {
         const data = response as RankHistoryData;
+        console.debug(data);
         setLoading(false);
         if (!canvasRef.current) return;
 
@@ -94,7 +95,7 @@ function ChartPage() {
           data: player.ranks.map((r) => r.rank),
           values: player.ranks.map((r) => r.value),
           borderWidth: player.playerName === "You" ? 3 : 1.5,
-          tension: 0.3,
+          tension: 0.2,
           spanGaps: true,
           pointRadius: 2,
         }));
@@ -119,13 +120,17 @@ function ChartPage() {
                 title: { display: true, text: "Rank" },
               },
               x: {
-                title: { display: true, text: "Day" },
+                title: { display: false, text: "Day" },
               },
             },
             plugins: {
               legend: {
                 display: true,
                 position: "bottom",
+                align: "start",
+                labels: {
+                  boxWidth: 10,
+                },
               },
               tooltip: {
                 mode: "nearest",
