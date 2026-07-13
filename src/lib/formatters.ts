@@ -23,35 +23,6 @@ export function formatTime(seconds: number): string {
   return `${minutes}m ${remainingSeconds}s`;
 }
 
-/**
- * Formats a numeric average to one decimal place.
- * Example: 3.2456 → "3.2"
- */
-export function formatAverage(value: number): string {
-  return value.toFixed(1);
-}
-
-/**
- * Formats an ISO date string (YYYY-MM-DD) to a locale-appropriate display string.
- * Uses the default locale for formatting.
- */
-export function formatDate(isoDate: string): string {
-  const date = Temporal.PlainDate.from(isoDate);
-  return date.toLocaleString();
-}
-
-/**
- * Formats a count with a game type label and period string.
- * Example: formatCount(26, "Pinpoint", "last month") → "26 Pinpoint games last month"
- */
-export function formatCount(
-  count: number,
-  gameType: string,
-  period: string,
-): string {
-  return `${count} ${gameType} games ${period}`;
-}
-
 /** Human-friendly display names keyed by game type. */
 export const GAME_DISPLAY_NAMES: Record<GameType, string> = {
   pinpoint: "Pinpoint",
@@ -65,44 +36,9 @@ export const GAME_DISPLAY_NAMES: Record<GameType, string> = {
 };
 
 /**
- * Formats the personal average distance with sign and unit.
- * Returns the arithmetic difference between today's result and the historical average,
- * rounded to one decimal place, with a color indicator:
- * - Green "−" prefix when today is better (lower value)
- * - Red "+" prefix when today is worse (higher value)
- * - Neutral "0.0" when today equals the average
- *
- * For time-based games (all except pinpoint), appends "s" suffix.
- */
-export function formatDistance(
-  todayValue: number,
-  average: number,
-  gameType: GameType,
-): { text: string; color: "green" | "red" | "neutral" } {
-  const difference = todayValue - average;
-  const rounded = Math.abs(difference);
-  const fixed = rounded.toFixed(1);
-
-  if (difference === 0) {
-    return { text: "0.0", color: "neutral" };
-  }
-
-  const isTimeBased = gameType !== "pinpoint";
-  const suffix = isTimeBased ? "s" : "";
-
-  if (difference < 0) {
-    // Today is better (lower value)
-    return { text: `\u2212${fixed}${suffix}`, color: "green" };
-  }
-
-  // Today is worse (higher value)
-  return { text: `+${fixed}${suffix}`, color: "red" };
-}
-
-/**
  * Formats a percentile value as "N%".
  */
-export function formatPercentile(value: number): string {
+function formatPercentile(value: number): string {
   return `${value}%`;
 }
 
@@ -110,7 +46,7 @@ export function formatPercentile(value: number): string {
  * Returns the CSS modifier class for a percentile pill based on tier thresholds.
  * Uses a 5-tier system for consistent color coding across the extension.
  */
-export function getPercentileTierClass(percentile: number): string {
+function getPercentileTierClass(percentile: number): string {
   if (percentile >= 90) return "pill--excellent";
   if (percentile >= 75) return "pill--great";
   if (percentile >= 50) return "pill--good";
