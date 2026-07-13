@@ -10,6 +10,8 @@
  */
 
 import type {
+  ComparisonData,
+  DailyComparison,
   GameDaySummary,
   GameDetailData,
   GameSession,
@@ -410,5 +412,83 @@ export class DataStore {
     }
 
     return { gameType, days, players };
+  }
+
+  /**
+   * Get detailed comparison data between the user and a specific friend.
+   * Computes H2H record, personal bests, medians, and last 14 days of daily results.
+   */
+  async getComparison(gameType: GameType, friendName: string): Promise<ComparisonData> {
+    const sessions = await this.loadSessionsForGame(gameType);
+
+    const userCompleted = sessions.filter(
+      (s) => s.playerName === "self" && s.completed,
+    );
+    const friendCompleted = sessions.filter(
+      (s) => s.playerName === friendName && s.completed,
+    );
+
+    // H2H record
+    const userByDate = new Map(userCompleted.map((s) => [s.date, s]));
+    const friendByDate = new Map(friendCompleted.map((s) => [s.date, s]));
+
+    const commonDates = [...userByDate.keys()].filter((d) => friendByDate.has(d));
+    let wins = 0;
+    let losses = 0;
+    let ties = 0;
+    for (const date of commonDates) {
+      const uMetric = getMetric(userByDate.get(date)!);
+      const fMetric = getMetric(friendByDate.get(date)!);
+      if (uMetric < fMetric) wins++;
+      else if (uMetric > fMetric) losses++;
+      else ties++;
+    }
+
+    // Personal bests
+    const userMetrics = userCompleted.map(getMetric);
+    const friendMetrics = friendCompleted.map(getMetric);
+    const userPersonalBest = userMetrics.length > 0 ? Math.min(...userMetrics) : null;
+    const friendPersonalBest = friendMetrics.length > 0 ? Math.min(...friendMetrics) : null;
+
+    // Medians
+    const userMedian = computeMedian(userMetrics);
+    const friendMedian = computeMedian(friendMetrics);
+
+    // Daily results (last 14 days)
+    const today = Temporal.Now.plainDateISO();
+    const dailyResults: DailyComparison[] = [];
+    for (let i = 13; i >= 0; i--) {
+      const dayStr = today.subtract({ days: i }).toString();
+      const userSession = userByDate.get(dayStr);
+      const friendSession = friendByDate.get(dayStr);
+      const userValue = userSession ? getMetric(userSession) : null;
+      const friendValue = friendSession ? getMetric(friendSession) : null;
+
+      let outcome: DailyComparison["outcome"];
+      if (userValue === null || friendValue === null) {
+        outcome = "incomplete";
+      } else if (userValue < friendValue) {
+        outcome = "win";
+      } else if (userValue > friendValue) {
+        outcome = "loss";
+      } else {
+        outcome = "tie";
+      }
+
+      dailyResults.push({ date: dayStr, userValue, friendValue, outcome });
+    }
+
+    return {
+      gameType,
+      friendName,
+      h2h: { wins, losses, ties },
+      userPersonalBest,
+      friendPersonalBest,
+      userMedian,
+      friendMedian,
+      userSessionCount: userCompleted.length,
+      friendSessionCount: friendCompleted.length,
+      dailyResults,
+    };
   }
 }

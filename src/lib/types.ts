@@ -107,6 +107,7 @@ export enum MessageType {
   GET_TODAY_SUMMARY = "get_today_summary",
   GET_GAME_DETAIL = "get_game_detail",
   GET_RANK_HISTORY = "get_rank_history",
+  GET_COMPARISON = "get_comparison",
 }
 
 /** Payload for LEADERBOARD_RESULTS: bundles user + friends in one message to avoid race conditions */
@@ -221,4 +222,41 @@ export interface RankHistoryData {
   gameType: GameType;
   days: number;
   players: PlayerRankHistory[];
+}
+
+/**
+ * A single day's comparison between user and friend.
+ * Null metric means the player didn't complete the game that day.
+ */
+export interface DailyComparison {
+  date: string;
+  userValue: number | null;
+  friendValue: number | null;
+  /** "win" if user was better (lower metric), "loss" if friend was better, "tie", or "incomplete" */
+  outcome: "win" | "loss" | "tie" | "incomplete";
+}
+
+/**
+ * Response payload for GET_COMPARISON.
+ * Contains detailed head-to-head data between user and a specific friend.
+ */
+export interface ComparisonData {
+  gameType: GameType;
+  friendName: string;
+  /** Overall head-to-head record */
+  h2h: H2HRecord;
+  /** User's personal best (min metric), null if no sessions */
+  userPersonalBest: number | null;
+  /** Friend's personal best (min metric), null if no sessions */
+  friendPersonalBest: number | null;
+  /** User's median metric, null if no sessions */
+  userMedian: number | null;
+  /** Friend's median metric, null if no sessions */
+  friendMedian: number | null;
+  /** User's total completed sessions count */
+  userSessionCount: number;
+  /** Friend's total completed sessions count */
+  friendSessionCount: number;
+  /** Last 14 days of daily comparisons (most recent last) */
+  dailyResults: DailyComparison[];
 }

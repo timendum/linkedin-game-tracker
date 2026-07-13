@@ -73,6 +73,12 @@ async function handleMessage(
       return await dataStore.getRankHistory(gameType, days);
     }
 
+    case MessageType.GET_COMPARISON: {
+      const gameType = message.gameType as GameType;
+      const friendName = message.friendName as string;
+      return await dataStore.getComparison(gameType, friendName);
+    }
+
     default:
       return { error: `Unknown message type: ${message.type}` };
   }

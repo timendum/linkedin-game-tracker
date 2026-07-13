@@ -11,7 +11,12 @@ import type { GameDetailData, GameSession, GameType, LeaderboardEntry } from "..
 import { MessageType } from "../../lib/types.ts";
 import { browserAPI } from "../../lib/browser.ts";
 import { formatTodayResult, normalizeTrend } from "../../lib/game-detail-utils.ts";
-import { buildPercentilePills, formatTime, GAME_DISPLAY_NAMES, GAME_URLS } from "../../lib/formatters.ts";
+import {
+  buildPercentilePills,
+  formatTime,
+  GAME_DISPLAY_NAMES,
+  GAME_URLS,
+} from "../../lib/formatters.ts";
 
 interface GameHeaderProps {
   gameName: string;
@@ -117,9 +122,7 @@ function TrendSparkline({ values, days, gameType }: TrendSparklineProps) {
       <span class="trend-blocks">
         {normalized.map((v, i) => {
           const raw = values[i];
-          const tooltip = raw !== null
-            ? (isTimeBased ? formatTime(raw) : String(raw))
-            : undefined;
+          const tooltip = raw !== null ? (isTimeBased ? formatTime(raw) : String(raw)) : undefined;
           return (
             <span
               key={i}
@@ -138,6 +141,7 @@ interface FriendsLeaderboardProps {
   entries: LeaderboardEntry[];
   gameType: GameType;
   dateColumnLabel: string;
+  onCompare?: (friendName: string) => void;
 }
 
 function computeRank(entry: LeaderboardEntry, allEntries: LeaderboardEntry[]): number | null {
@@ -147,7 +151,9 @@ function computeRank(entry: LeaderboardEntry, allEntries: LeaderboardEntry[]): n
   return betterCount + 1;
 }
 
-function FriendsLeaderboard({ entries, gameType, dateColumnLabel }: FriendsLeaderboardProps) {
+function FriendsLeaderboard(
+  { entries, gameType, dateColumnLabel, onCompare }: FriendsLeaderboardProps,
+) {
   // Hide if only the "You" row exists (no friends data)
   if (entries.length <= 1) return null;
 
@@ -206,9 +212,26 @@ function FriendsLeaderboard({ entries, gameType, dateColumnLabel }: FriendsLeade
         <tbody>
           {entries.map((entry) => {
             const rank = computeRank(entry, entries);
+            const isFriend = entry.playerName !== "You";
             return (
               <tr key={entry.playerName} class={entry.playerName === "You" ? "you-row" : ""}>
-                <td>{entry.playerName}</td>
+                <td>
+                  {isFriend && onCompare
+                    ? (
+                      <a
+                        class="leaderboard-compare-link"
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onCompare(entry.playerName);
+                        }}
+                        title={`Compare with ${entry.playerName}`}
+                      >
+                        {entry.playerName}
+                      </a>
+                    )
+                    : entry.playerName}
+                </td>
                 <td>{rank ?? "—"}</td>
                 <td>{formatTodayValue(entry.todayValue)}</td>
                 <td>{formatMedian(entry.median)}</td>
@@ -300,6 +323,7 @@ function DayNavigator({ selectedDate, onDateChange }: DayNavigatorProps) {
 interface GameDetailViewProps {
   gameType: GameType;
   onBack: () => void;
+  onCompare?: (gameType: GameType, friendName: string) => void;
 }
 
 function formatDateLabel(dateStr: string): string {
@@ -309,7 +333,7 @@ function formatDateLabel(dateStr: string): string {
 
 const NO_LEADERBOARD: LeaderboardEntry[] = [];
 
-export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
+export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewProps) {
   const [data, setData] = useState<GameDetailData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -438,6 +462,9 @@ export function GameDetailView({ gameType, onBack }: GameDetailViewProps) {
               entries={displayedLeaderboard}
               gameType={data.gameType}
               dateColumnLabel={dateColumnLabel}
+              onCompare={onCompare
+                ? (friendName) => onCompare(data.gameType, friendName)
+                : undefined}
             />
             <div class="day-navigator">
               <DayNavigator

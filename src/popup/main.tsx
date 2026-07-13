@@ -12,8 +12,12 @@ import { MessageType } from "../lib/types.ts";
 import { browserAPI } from "../lib/browser.ts";
 import { TodaySummary } from "./views/today-view.tsx";
 import { GameDetailView } from "./views/game-detail-view.tsx";
+import { ComparisonView } from "./views/comparison-view.tsx";
 
-type View = { kind: "today" } | { kind: "game"; gameType: GameType };
+type View =
+  | { kind: "today" }
+  | { kind: "game"; gameType: GameType }
+  | { kind: "compare"; gameType: GameType; friendName: string };
 
 function App() {
   const [view, setView] = useState<View>({ kind: "today" });
@@ -44,6 +48,16 @@ function App() {
     setError(null);
   }, []);
 
+  const handleCompare = useCallback((gameType: GameType, friendName: string) => {
+    setError(null);
+    setView({ kind: "compare", gameType, friendName });
+  }, []);
+
+  const handleCompareBack = useCallback((gameType: GameType) => {
+    setError(null);
+    setView({ kind: "game", gameType });
+  }, []);
+
   return (
     <>
       {view.kind === "today" && (
@@ -58,6 +72,15 @@ function App() {
         <GameDetailView
           gameType={view.gameType}
           onBack={handleBack}
+          onCompare={handleCompare}
+        />
+      )}
+
+      {view.kind === "compare" && (
+        <ComparisonView
+          gameType={view.gameType}
+          friendName={view.friendName}
+          onBack={() => handleCompareBack(view.gameType)}
         />
       )}
     </>

@@ -12,20 +12,20 @@ Tango, Wend, Patches, Zip, Mini-Sudoku). Built with Deno + esbuild, outputs to `
 - **Build:** `deno task build` — bundles TypeScript via esbuild into `dist/`
 - **Type-check:** `deno task check`
 - **Test:** `deno task test`
-- **Lint:** `just lint`
+- **Lint:** `just lint` — runs both `deno lint` and oxlint (via `deno run xlint`)
 - **Format:** `deno fmt`
-
-At the start of a terminal session, run a simple `cd <folder>` command first to confirm the working
-directory. Don't join the `cd` command with others commands like deno.
+- **CI gate:** `just ci` — runs check, test, fmt-check, and lint together
 
 ## Architecture
 
 ```
 src/
-  background/   – Service worker, data store, messaging, storage monitor
+  background/   – Service worker, IndexedDB data store (via idb), messaging
+  chart/        – Standalone chart page (Chart.js visualizations)
   content/      – Content scripts injected on LinkedIn game pages
   lib/          – Shared types, validators, formatters, browser API wrapper
-  popup/        – Extension popup UI (HTML/CSS/TS), views for stats/sessions/export/import
+  popup/        – Extension popup UI (Preact + JSX), views: today-view, game-detail-view
+  shared/       – Shared CSS
 manifest.json   – Extension manifest (copied to dist at build time)
 build.ts        – Deno + esbuild build script
 ```
@@ -33,8 +33,10 @@ build.ts        – Deno + esbuild build script
 ## Key Conventions
 
 - TypeScript throughout; no `node_modules` — use Deno imports and `npm:` specifiers in `deno.json`.
+- UI uses **Preact** with JSX (`jsxImportSource: "preact"` in compiler options).
+- Persistence uses **IndexedDB** via the `idb` package — not `chrome.storage`.
 - Tests use Deno's built-in test runner (`_test.ts` suffix). Property-based tests use `fast-check`.
-- Browser APIs (chrome.storage, chrome.runtime) are wrapped in `src/lib/browser.ts` for testability.
+- Browser APIs (chrome.runtime) are wrapped in `src/lib/browser.ts` for testability.
 - Content scripts scrape completed game results from LinkedIn DOM — they don't interact with the
   page beyond reading.
 - The popup communicates with the background service worker via `chrome.runtime.sendMessage`.
@@ -42,7 +44,7 @@ build.ts        – Deno + esbuild build script
 ## Validation & Testing
 
 - Always run `deno task check` after modifying TypeScript to catch type errors.
-- Run `deno lint` to catch lint issues.
+- Run `just lint` to catch lint issues (runs both deno lint and oxlint).
 - Run `deno fmt` to format code.
 - Run `deno task test` to verify existing tests still pass.
 - Run `deno task build` to confirm the extension bundles cleanly.
