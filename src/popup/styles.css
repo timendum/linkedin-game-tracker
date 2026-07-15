@@ -680,3 +680,30 @@ body {
 .leaderboard-compare-link:hover {
   text-decoration: underline;
 }
+
+/* Comparison top row: header left, button right */
+.comparison-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Full Compare button in comparison view */
+.full-compare-btn {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  color: var(--color-brand);
+  border: 1px solid var(--color-brand);
+  border-radius: 6px;
+  background: var(--color-bg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.full-compare-btn:hover {
+  background: var(--color-brand-bg);
+}

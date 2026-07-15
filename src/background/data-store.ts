@@ -219,7 +219,7 @@ export class DataStore {
       }
 
       // Compute historical percentile using unified method
-      let historicalPercentile = 100;
+      let historicalPercentile: number | null = null;
       if (userSession !== null && userSession.completed) {
         const todayMetric = getMetric(userSession);
         const priorMetrics = priorSessions.map(getMetric);
@@ -266,12 +266,12 @@ export class DataStore {
     // 2. Get today's metric value if exists
     const todayMetric = todaySession ? getMetric(todaySession) : null;
 
-    // 3. Compute historyPercentile
+    // 3. Compute historyPercentile (null when today's game not played)
     const priorSessions = userCompletedSessions.filter((s) => s.date !== date);
     const priorMetrics = priorSessions.map(getMetric);
     const historyPercentile = todayMetric !== null
       ? computePercentile(todayMetric, priorMetrics, "historical")!
-      : 100;
+      : null;
 
     // 4. Compute friendsPercentile
     const friendsTodaySessions = sessions.filter(
@@ -412,6 +412,21 @@ export class DataStore {
     }
 
     return { gameType, days, players };
+  }
+
+  /**
+   * Get all distinct friend names (non-"self" player names) from the database.
+   */
+  async getAllFriendNames(): Promise<string[]> {
+    const db = await this.getDB();
+    const allSessions = await db.getAll("sessions");
+    const names = new Set<string>();
+    for (const session of allSessions) {
+      if (session.playerName !== "self") {
+        names.add(session.playerName);
+      }
+    }
+    return [...names].sort();
   }
 
   /**

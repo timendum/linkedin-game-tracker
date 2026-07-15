@@ -9,17 +9,17 @@ help:
 # bundle the extension into dist/
 build:
   @echo "==> build"
-  deno run --allow-read --allow-write --allow-env --allow-run build.ts
+  deno task build
 
 # type-check all TypeScript sources
 check:
   @echo "==> typecheck"
-  deno check src/**/*.ts
+  deno task check
 
 # run tests
 test *ARGS:
   @echo "==> test"
-  deno test --allow-read --allow-write {{ARGS}}
+  deno task test
 
 # format sources (deno fmt, line width 100)
 fmt *ARGS:
@@ -34,7 +34,7 @@ fmt-check:
 lint *ARGS:
   @echo "==> lint"
   deno lint {{ARGS}}
-  deno run xlint {{ARGS}}
+  deno task xlint {{ARGS}}
 
 # run all quality gates: typecheck + test + format check
 ci: check test fmt-check lint

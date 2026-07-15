@@ -79,6 +79,10 @@ async function handleMessage(
       return await dataStore.getComparison(gameType, friendName);
     }
 
+    case MessageType.GET_ALL_FRIENDS: {
+      return await dataStore.getAllFriendNames();
+    }
+
     default:
       return { error: `Unknown message type: ${message.type}` };
   }

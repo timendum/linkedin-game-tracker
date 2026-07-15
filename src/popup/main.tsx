@@ -53,10 +53,12 @@ function App() {
     setView({ kind: "compare", gameType, friendName });
   }, []);
 
-  const handleCompareBack = useCallback((gameType: GameType) => {
+  const handleCompareBack = useCallback(() => {
     setError(null);
-    setView({ kind: "game", gameType });
-  }, []);
+    if (view.kind == "game") {
+      setView({ kind: "game", gameType: view.gameType });
+    }
+  }, [view]);
 
   return (
     <>
@@ -80,7 +82,7 @@ function App() {
         <ComparisonView
           gameType={view.gameType}
           friendName={view.friendName}
-          onBack={() => handleCompareBack(view.gameType)}
+          onBack={handleCompareBack}
         />
       )}
     </>

@@ -48,7 +48,7 @@ function GameHeader({ gameName, gameType, todaySession }: GameHeaderProps) {
 
 interface TodayStatsProps {
   todaySession: GameSession | null;
-  historyPercentile: number;
+  historyPercentile: number | null;
   friendsPercentile: number | null;
 }
 
@@ -125,8 +125,9 @@ function TrendSparkline({ values, days, gameType }: TrendSparklineProps) {
           const tooltip = raw !== null ? (isTimeBased ? formatTime(raw) : String(raw)) : undefined;
           return (
             <span
-              key={i}
+              key={`day-${days - i}`}
               class={`trend-bar${v === null ? " trend-bar--gap" : ""}`}
+              // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
               style={v !== null ? { height: `${((v + 1) / 8) * 100}%` } : undefined}
               title={tooltip}
             />
@@ -151,13 +152,20 @@ function computeRank(entry: LeaderboardEntry, allEntries: LeaderboardEntry[]): n
   return betterCount + 1;
 }
 
-function FriendsLeaderboard(
-  { entries, gameType, dateColumnLabel, onCompare }: FriendsLeaderboardProps,
-) {
-  // Hide if only the "You" row exists (no friends data)
-  if (entries.length <= 1) return null;
+interface LeaderboardRowProps {
+  entry: LeaderboardEntry;
+  rank: number | null;
+  isTimeBased: boolean;
+  onCompare?: (friendName: string) => void;
+}
 
-  const isTimeBased = gameType !== "pinpoint";
+function LeaderboardRow({ entry, rank, isTimeBased, onCompare }: LeaderboardRowProps) {
+  const isFriend = entry.playerName !== "You";
+
+  const handleClick = useCallback((e: Event) => {
+    e.preventDefault();
+    onCompare?.(entry.playerName);
+  }, [onCompare, entry.playerName]);
 
   const formatTodayValue = (value: number | null): string => {
     if (value === null) return "—";
@@ -186,6 +194,7 @@ function FriendsLeaderboard(
     const base = `${h2h.wins}/${h2h.losses}`;
     return h2h.ties > 0 ? `${base} (${h2h.ties})` : base;
   };
+
   const formatH2HTitle = (
     h2h: { wins: number; losses: number; ties: number } | null,
   ): string | undefined => {
@@ -196,6 +205,40 @@ function FriendsLeaderboard(
     if (h2h.ties > 0) tiers.push(`${h2h.ties} ties`);
     return tiers.join(", ");
   };
+
+  return (
+    <tr class={entry.playerName === "You" ? "you-row" : ""}>
+      <td>
+        {isFriend && onCompare
+          ? (
+            <a
+              class="leaderboard-compare-link"
+              href="#"
+              onClick={handleClick}
+              title={`Compare with ${entry.playerName}`}
+            >
+              {entry.playerName}
+            </a>
+          )
+          : entry.playerName}
+      </td>
+      <td>{rank ?? "—"}</td>
+      <td>{formatTodayValue(entry.todayValue)}</td>
+      <td>{formatMedian(entry.median)}</td>
+      <td>
+        <span title={formatH2HTitle(entry.h2h)}>{formatH2H(entry.h2h)}</span>
+      </td>
+    </tr>
+  );
+}
+
+function FriendsLeaderboard(
+  { entries, gameType, dateColumnLabel, onCompare }: FriendsLeaderboardProps,
+) {
+  // Hide if only the "You" row exists (no friends data)
+  if (entries.length <= 1) return null;
+
+  const isTimeBased = gameType !== "pinpoint";
 
   return (
     <div class="friends-leaderboard">
@@ -210,37 +253,15 @@ function FriendsLeaderboard(
           </tr>
         </thead>
         <tbody>
-          {entries.map((entry) => {
-            const rank = computeRank(entry, entries);
-            const isFriend = entry.playerName !== "You";
-            return (
-              <tr key={entry.playerName} class={entry.playerName === "You" ? "you-row" : ""}>
-                <td>
-                  {isFriend && onCompare
-                    ? (
-                      <a
-                        class="leaderboard-compare-link"
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          onCompare(entry.playerName);
-                        }}
-                        title={`Compare with ${entry.playerName}`}
-                      >
-                        {entry.playerName}
-                      </a>
-                    )
-                    : entry.playerName}
-                </td>
-                <td>{rank ?? "—"}</td>
-                <td>{formatTodayValue(entry.todayValue)}</td>
-                <td>{formatMedian(entry.median)}</td>
-                <td>
-                  <span title={formatH2HTitle(entry.h2h)}>{formatH2H(entry.h2h)}</span>
-                </td>
-              </tr>
-            );
-          })}
+          {entries.map((entry) => (
+            <LeaderboardRow
+              key={entry.playerName}
+              entry={entry}
+              rank={computeRank(entry, entries)}
+              isTimeBased={isTimeBased}
+              onCompare={onCompare}
+            />
+          ))}
         </tbody>
       </table>
     </div>
@@ -402,6 +423,13 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
   const dateColumnLabel = selectedDate === null ? "Today" : formatDateLabel(selectedDate);
   const displayedLeaderboard = leaderboardEntries ?? (data?.leaderboard ?? NO_LEADERBOARD);
 
+  const handleCompare = useCallback(
+    (friendName: string) => {
+      onCompare?.(gameType, friendName);
+    },
+    [onCompare, gameType],
+  );
+
   const openChart = useCallback(() => {
     const chartUrl = browserAPI.runtime.getURL(`chart/index.html?gameType=${gameType}`);
     browserAPI.tabs.create({ url: chartUrl });
@@ -462,9 +490,7 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
               entries={displayedLeaderboard}
               gameType={data.gameType}
               dateColumnLabel={dateColumnLabel}
-              onCompare={onCompare
-                ? (friendName) => onCompare(data.gameType, friendName)
-                : undefined}
+              onCompare={onCompare ? handleCompare : undefined}
             />
             <div class="day-navigator">
               <DayNavigator

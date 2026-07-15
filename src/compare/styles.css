@@ -1,0 +1,404 @@
+@import "../shared/base.css";
+
+/* Compare page overrides */
+body {
+  background: var(--color-surface);
+  padding: 24px;
+}
+
+.compare-page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.compare-page__header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.compare-page__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.compare-page__subtitle {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-left: 12px;
+}
+
+/* Overall summary card */
+.compare-page__overall {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.compare-page__overall-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--color-text-primary);
+}
+
+.compare-page__overall-stats {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.compare-page__overall-record {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.compare-page__overall-win {
+  color: #28a745;
+}
+
+.compare-page__overall-loss {
+  color: #c0392b;
+}
+
+.compare-page__overall-tie {
+  color: var(--color-text-muted);
+}
+
+.compare-page__overall-separator {
+  color: var(--color-text-faint);
+  margin: 0 4px;
+}
+
+.compare-page__overall-bar {
+  flex: 1;
+  min-width: 200px;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  display: flex;
+  background: var(--color-surface);
+}
+
+.compare-page__overall-bar-wins {
+  background: #28a745;
+  height: 100%;
+}
+
+.compare-page__overall-bar-ties {
+  background: var(--color-text-muted);
+  height: 100%;
+}
+
+.compare-page__overall-bar-losses {
+  background: #c0392b;
+  height: 100%;
+}
+
+.compare-page__overall-rate {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* Game cards grid */
+.compare-page__games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 16px;
+}
+
+/* Outcome heatmap grid */
+.compare-page__heatmap {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.compare-page__heatmap-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--color-text-primary);
+}
+
+.compare-page__heatmap-empty {
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--color-text-faint);
+}
+
+.compare-page__heatmap-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.heatmap-grid {
+  border-collapse: separate;
+  border-spacing: 3px;
+  width: 100%;
+}
+
+.heatmap-grid__corner {
+  width: 90px;
+}
+
+.heatmap-grid__date-header {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 2px 0 6px;
+  white-space: nowrap;
+}
+
+.heatmap-grid__game-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  padding-right: 8px;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.heatmap-grid__cell {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 4px;
+  transition: transform 0.1s ease;
+}
+
+.heatmap-grid__cell:hover {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 1px;
+}
+
+.heatmap-grid__cell--win {
+  background: #28a745;
+}
+
+.heatmap-grid__cell--loss {
+  background: #c0392b;
+}
+
+.heatmap-grid__cell--tie {
+  background: #6b7280;
+}
+
+.heatmap-grid__cell--empty {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.heatmap-grid__cell--incomplete {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+/* Legend */
+.heatmap-grid__legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.heatmap-grid__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.heatmap-grid__legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.heatmap-grid__legend-swatch--win {
+  background: #28a745;
+}
+
+.heatmap-grid__legend-swatch--loss {
+  background: #c0392b;
+}
+
+.heatmap-grid__legend-swatch--tie {
+  background: #6b7280;
+}
+
+.heatmap-grid__legend-swatch--empty {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+/* Individual game card */
+.game-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.game-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.game-card__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.game-card__record {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.game-card__win {
+  color: #28a745;
+}
+
+.game-card__loss {
+  color: #c0392b;
+}
+
+.game-card__tie {
+  color: var(--color-text-muted);
+}
+
+.game-card__separator {
+  color: var(--color-text-faint);
+  margin: 0 2px;
+}
+
+/* Stats table inside game card */
+.game-card__stats {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.game-card__stats th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.game-card__stats td {
+  padding: 4px 8px;
+}
+
+.game-card__stats .better {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.game-card__stats .worse {
+  color: #c0392b;
+}
+
+/* H2H bar inside game card */
+.game-card__bar {
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  background: var(--color-surface);
+  margin-top: 12px;
+}
+
+.game-card__bar-wins {
+  background: #28a745;
+  height: 100%;
+}
+
+.game-card__bar-ties {
+  background: var(--color-text-muted);
+  height: 100%;
+}
+
+.game-card__bar-losses {
+  background: #c0392b;
+  height: 100%;
+}
+
+/* No data state */
+.game-card__empty {
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--color-text-faint);
+}
+
+/* Friend autocomplete */
+.friend-autocomplete {
+  position: relative;
+  margin: 0 12px;
+}
+
+.friend-autocomplete__input {
+  font-size: 14px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  width: 180px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.friend-autocomplete__input:focus {
+  border-color: var(--color-accent, #0a66c2);
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.15);
+}
+
+.friend-autocomplete__list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 4px 0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.friend-autocomplete__item {
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 0 4px;
+}
+
+.friend-autocomplete__item:hover,
+.friend-autocomplete__item--highlighted {
+  background: var(--color-surface);
+}

@@ -7,6 +7,7 @@ import { resolve } from "@std/path";
 const entryPoints = [
   { in: "src/popup/main.tsx", out: "popup/main" },
   { in: "src/chart/main.tsx", out: "chart/main" },
+  { in: "src/compare/main.tsx", out: "compare/main" },
   { in: "src/content/game-scraper.ts", out: "content/game-scraper" },
   { in: "src/content/result-scraper.ts", out: "content/result-scraper" },
   { in: "src/background/service-worker.ts", out: "background/service-worker" },
@@ -89,6 +90,23 @@ async function build() {
   }
   try {
     await copy("src/chart/styles.css", "dist/chart/styles.css", {
+      overwrite: true,
+    });
+  } catch {
+    // styles.css may not exist yet during initial scaffold
+  }
+
+  // Copy compare static assets to dist
+  await ensureDir("dist/compare");
+  try {
+    await copy("src/compare/index.html", "dist/compare/index.html", {
+      overwrite: true,
+    });
+  } catch {
+    // index.html may not exist yet during initial scaffold
+  }
+  try {
+    await copy("src/compare/styles.css", "dist/compare/styles.css", {
       overwrite: true,
     });
   } catch {

@@ -6,7 +6,7 @@
  * 14-day daily results timeline.
  */
 
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import type { ComparisonData, DailyComparison, GameType } from "../../lib/types.ts";
 import { MessageType } from "../../lib/types.ts";
 import { browserAPI } from "../../lib/browser.ts";
@@ -55,6 +55,14 @@ export function ComparisonView({ gameType, friendName, onBack }: ComparisonViewP
     return () => clearTimeout(timeout);
   }, [gameType, friendName]);
 
+  const openCompare = useCallback(() => {
+    if (!data) return;
+    const url = browserAPI.runtime.getURL(
+      `compare/index.html?friendName=${encodeURIComponent(data.friendName)}`,
+    );
+    browserAPI.tabs.create({ url });
+  }, [data]);
+
   return (
     <div class="comparison-view">
       <button type="button" class="back-btn" onClick={onBack}>← Back</button>
@@ -65,10 +73,19 @@ export function ComparisonView({ gameType, friendName, onBack }: ComparisonViewP
       {data && (
         <>
           <div class="detail-card">
-            <ComparisonHeader
-              gameName={GAME_DISPLAY_NAMES[gameType]}
-              friendName={data.friendName}
-            />
+            <div class="comparison-top-row">
+              <ComparisonHeader
+                gameName={GAME_DISPLAY_NAMES[gameType]}
+                friendName={data.friendName}
+              />
+              <button
+                type="button"
+                class="full-compare-btn"
+                onClick={openCompare}
+              >
+                Compare all games ↗
+              </button>
+            </div>
           </div>
 
           <div class="detail-card">
@@ -127,18 +144,21 @@ function H2HSummary(
           <>
             <div
               class="h2h-summary__bar-wins"
+              // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
               style={{ width: `${(h2h.wins / total) * 100}%` }}
               title={`You: ${h2h.wins} wins`}
             />
             {h2h.ties > 0 && (
               <div
                 class="h2h-summary__bar-ties"
+                // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
                 style={{ width: `${(h2h.ties / total) * 100}%` }}
                 title={`Ties: ${h2h.ties}`}
               />
             )}
             <div
               class="h2h-summary__bar-losses"
+              // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
               style={{ width: `${(h2h.losses / total) * 100}%` }}
               title={`${friendName}: ${h2h.losses} wins`}
             />

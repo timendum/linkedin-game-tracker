@@ -108,6 +108,7 @@ export enum MessageType {
   GET_GAME_DETAIL = "get_game_detail",
   GET_RANK_HISTORY = "get_rank_history",
   GET_COMPARISON = "get_comparison",
+  GET_ALL_FRIENDS = "get_all_friends",
 }
 
 /** Payload for LEADERBOARD_RESULTS: bundles user + friends in one message to avoid race conditions */
@@ -127,8 +128,8 @@ export interface GameDaySummary {
   historicalAverage: number | null;
   /** Count of prior completed sessions (excluding today) */
   priorSessionCount: number;
-  /** Percentile rank (0–100) vs own history, 100 if no prior sessions */
-  historicalPercentile: number;
+  /** Percentile rank (0–100) vs own history, null if not played today */
+  historicalPercentile: number | null;
   /** Percentile rank (0–100) vs friends today, null if no friends data */
   friendsPercentile: number | null;
   /** Friends' completed sessions for the same date */
@@ -180,8 +181,8 @@ export interface GameDetailData {
   date: string;
   /** User's completed session for today, or null if not yet played */
   todaySession: GameSession | null;
-  /** Percentile rank vs own history (0–100, higher = better), defaults to 100 if no prior sessions */
-  historyPercentile: number;
+  /** Percentile rank vs own history (0–100, higher = better), null if not played today */
+  historyPercentile: number | null;
   /** Percentile rank vs friends today (0–100, higher = better), null if no friends data */
   friendsPercentile: number | null;
   /** Best performance value ever recorded (seconds or score), null if no sessions */
