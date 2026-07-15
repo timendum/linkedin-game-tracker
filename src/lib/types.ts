@@ -109,6 +109,7 @@ export enum MessageType {
   GET_RANK_HISTORY = "get_rank_history",
   GET_COMPARISON = "get_comparison",
   GET_ALL_FRIENDS = "get_all_friends",
+  GET_LATEST_SCRAPE_TIME = "get_latest_scrape_time",
 }
 
 /** Payload for LEADERBOARD_RESULTS: bundles user + friends in one message to avoid race conditions */

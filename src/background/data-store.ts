@@ -386,15 +386,18 @@ export class DataStore {
       valuesByDateAndPlayer.set(date, dayValues);
     }
 
-    // Build the response
-    const players: PlayerRankHistory[] = [...playerSet].map((playerName) => ({
-      playerName,
-      ranks: dates.map((date) => ({
-        date,
-        rank: ranksByDateAndPlayer.get(date)?.get(playerName) ?? null,
-        value: valuesByDateAndPlayer.get(date)?.get(playerName) ?? null,
-      })),
-    }));
+    // Build the response, filtering out players with insufficient data
+    const minEntries = Math.ceil((2 / 7) * days);
+    const players: PlayerRankHistory[] = [...playerSet]
+      .map((playerName) => ({
+        playerName,
+        ranks: dates.map((date) => ({
+          date,
+          rank: ranksByDateAndPlayer.get(date)?.get(playerName) ?? null,
+          value: valuesByDateAndPlayer.get(date)?.get(playerName) ?? null,
+        })),
+      }))
+      .filter((p) => p.ranks.filter((r) => r.rank !== null).length >= minEntries);
 
     // Trim leading days where no player has data
     const dayCount = players[0]?.ranks.length ?? 0;
@@ -412,6 +415,23 @@ export class DataStore {
     }
 
     return { gameType, days, players };
+  }
+
+  /**
+   * Get the most recent scrapedAt timestamp for a given game type.
+   * Returns the ISO timestamp string or null if no sessions exist for that game.
+   */
+  async getLatestScrapeTime(gameType: GameType): Promise<string | null> {
+    const sessions = await this.loadSessionsForGame(gameType);
+    if (sessions.length === 0) return null;
+
+    let latest: string | null = null;
+    for (const session of sessions) {
+      if (!latest || session.scrapedAt > latest) {
+        latest = session.scrapedAt;
+      }
+    }
+    return latest;
   }
 
   /**

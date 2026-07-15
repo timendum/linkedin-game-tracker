@@ -83,6 +83,11 @@ async function handleMessage(
       return await dataStore.getAllFriendNames();
     }
 
+    case MessageType.GET_LATEST_SCRAPE_TIME: {
+      const gameType = message.gameType as GameType;
+      return await dataStore.getLatestScrapeTime(gameType);
+    }
+
     default:
       return { error: `Unknown message type: ${message.type}` };
   }

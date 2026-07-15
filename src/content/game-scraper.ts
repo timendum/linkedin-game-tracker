@@ -465,7 +465,7 @@ class GameScraper {
   ): GameSession | null {
     const sessionDate = date ?? getTodayISO();
     const sessionCompleted = completed ?? true;
-    const scrapedAt = new Date().toISOString();
+    const scrapedAt = Temporal.Now.instant().toString();
 
     if (this.gameType === "pinpoint") {
       // For Pinpoint, score is the metric (1-5 clues/guesses)

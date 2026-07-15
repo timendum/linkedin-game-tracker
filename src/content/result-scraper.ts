@@ -76,6 +76,12 @@ class ResultScraper {
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   /** Delay in ms to debounce rapid DOM mutations (e.g., "See more" loading multiple rows) */
   private static readonly DEBOUNCE_MS = 800;
+  /** Whether the "yesterday" reminder banner is currently shown */
+  private yesterdayReminderShown = false;
+  /** Whether we've already checked the background for staleness this session */
+  private yesterdayReminderChecked = false;
+  /** Threshold: show reminder when last scrape is older than this duration */
+  private static readonly STALE_THRESHOLD = Temporal.Duration.from({ hours: 18 });
 
   constructor(gameType: GameType) {
     this.gameType = gameType;
@@ -343,6 +349,9 @@ class ResultScraper {
       this.lastActiveTab = activeTab;
     }
 
+    // Show or hide the "yesterday" reminder based on active tab and time of day
+    this.maybeShowYesterdayReminder(activeTab);
+
     let totalRows = 0;
     for (const doc of docs) {
       const rows = doc.querySelectorAll(
@@ -423,7 +432,7 @@ class ResultScraper {
       return null;
     }
 
-    const scrapedAt = new Date().toISOString();
+    const scrapedAt = Temporal.Now.instant().toString();
 
     if (this.gameType === "pinpoint") {
       // Pinpoint scores are plain numbers (1-6 guesses)
@@ -459,7 +468,7 @@ class ResultScraper {
    * ensuring deduplication via composite key.
    */
   private buildUserSession(scoreText: string, date: string): GameSession | null {
-    const scrapedAt = new Date().toISOString();
+    const scrapedAt = Temporal.Now.instant().toString();
 
     if (this.gameType === "pinpoint") {
       const score = parseInt(scoreText, 10);
@@ -488,6 +497,113 @@ class ResultScraper {
     };
   }
 
+  /**
+   * Shows a small reminder to click "Yesterday" if:
+   * - The "Today" tab is currently active
+   * - The last scraped data for this game in the database is older than 18 hours
+   * - The reminder isn't already displayed
+   *
+   * Queries the background service worker for the latest scrape timestamp.
+   * Only checks once per scraper session to avoid repeated messages.
+   */
+  private maybeShowYesterdayReminder(activeTab: string | null): void {
+    // Remove reminder when switching away from "today"
+    if (activeTab !== "today") {
+      if (this.yesterdayReminderShown) {
+        this.removeYesterdayReminder();
+        this.yesterdayReminderShown = false;
+      }
+      return;
+    }
+
+    // Only query the background once per scraper session
+    if (this.yesterdayReminderChecked || this.yesterdayReminderShown) return;
+    this.yesterdayReminderChecked = true;
+
+    this.checkStalenessAndShow();
+  }
+
+  /**
+   * Queries the background for the latest scrape time and shows the reminder
+   * if the data is older than the staleness threshold.
+   */
+  private async checkStalenessAndShow(): Promise<void> {
+    try {
+      const latestScrapeTime = await browserAPI.runtime.sendMessage({
+        type: MessageType.GET_LATEST_SCRAPE_TIME,
+        gameType: this.gameType,
+      }) as string | null;
+
+      let isStale: boolean;
+      if (latestScrapeTime === null) {
+        isStale = true;
+      } else {
+        const elapsed = Temporal.Now.instant().since(Temporal.Instant.from(latestScrapeTime));
+        isStale = Temporal.Duration.compare(elapsed, ResultScraper.STALE_THRESHOLD) >= 0;
+      }
+
+      if (isStale) {
+        this.injectYesterdayReminder();
+        this.yesterdayReminderShown = true;
+      }
+    } catch {
+      // If the message fails, don't show the reminder — not critical
+    }
+  }
+
+  /** Injects the reminder as a floating bubble next to the Yesterday tab */
+  private injectYesterdayReminder(): void {
+    for (const doc of this.getSearchDocuments()) {
+      // Avoid duplicates
+      if (doc.querySelector("[data-game-tracker-yesterday-reminder]")) continue;
+
+      // Find the "Yesterday" tab element
+      const tabs = doc.querySelectorAll('[role="tab"]');
+      let yesterdayTab: Element | null = null;
+      for (const tab of tabs) {
+        if (tab.textContent?.trim().toLowerCase() === "yesterday") {
+          yesterdayTab = tab;
+          break;
+        }
+      }
+      if (!yesterdayTab) continue;
+
+      const bubble = doc.createElement("span");
+      bubble.setAttribute("data-game-tracker-yesterday-reminder", "true");
+      bubble.textContent = "\u{1F448}";
+      bubble.title = "Don\u2019t forget to check yesterday\u2019s results!";
+      bubble.style.cssText = [
+        "display: inline-flex",
+        "align-items: center",
+        "justify-content: center",
+        "margin-left: 6px",
+        "font-size: 14px",
+        "width: 24px",
+        "height: 24px",
+        "background: #fef9e7",
+        "border: 1px solid #e8deb3",
+        "border-radius: 50%",
+        "box-shadow: 0 1px 4px rgba(0,0,0,0.10)",
+        "pointer-events: auto",
+        "cursor: default",
+        "animation: fadeIn 0.3s ease-in",
+        "vertical-align: middle",
+        "flex-shrink: 0",
+      ].join(";");
+
+      // Insert the bubble right after the Yesterday tab as a sibling
+      yesterdayTab.after(bubble);
+    }
+  }
+
+  /** Removes the reminder banner from all documents */
+  private removeYesterdayReminder(): void {
+    for (const doc of this.getSearchDocuments()) {
+      const reminder = doc.querySelector("[data-game-tracker-yesterday-reminder]");
+      reminder?.remove();
+    }
+  }
+
   /** Disconnects the MutationObserver and stops monitoring */
   destroy(): void {
     if (this.observer) {
@@ -502,6 +618,7 @@ class ResultScraper {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = null;
     }
+    this.removeYesterdayReminder();
   }
 }
 

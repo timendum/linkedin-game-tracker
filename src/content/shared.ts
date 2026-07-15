@@ -79,14 +79,12 @@ export function parseTimeToSeconds(timeStr: string): number | null {
 
 /** Returns today's date in ISO format (YYYY-MM-DD) */
 export function getTodayISO(): string {
-  return new Date().toISOString().split("T")[0];
+  return Temporal.Now.plainDateISO().toString();
 }
 
 /** Returns yesterday's date in ISO format (YYYY-MM-DD) */
 export function getYesterdayISO(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().split("T")[0];
+  return Temporal.Now.plainDateISO().subtract({ days: 1 }).toString();
 }
 
 // --- SPA Navigation Monitor ---
