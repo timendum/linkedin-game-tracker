@@ -2,7 +2,8 @@ import * as esbuild from "esbuild";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { copy } from "@std/fs/copy";
 import { ensureDir } from "@std/fs/ensure-dir";
-import { resolve } from "@std/path";
+import { expandGlob } from "@std/fs/expand-glob";
+import { dirname, resolve } from "@std/path";
 
 const entryPoints = [
   { in: "src/popup/main.tsx", out: "popup/main" },
@@ -11,6 +12,16 @@ const entryPoints = [
   { in: "src/content/game-scraper.ts", out: "content/game-scraper" },
   { in: "src/content/result-scraper.ts", out: "content/result-scraper" },
   { in: "src/background/service-worker.ts", out: "background/service-worker" },
+];
+
+/** Glob patterns for static assets to copy into dist, preserving directory structure under src/. */
+const staticAssets = [
+  "src/popup/*.{html,css}",
+  "src/chart/*.{html,css}",
+  "src/compare/*.{html,css}",
+  "src/shared/*.css",
+  "icons/*.png",
+  "manifest.json",
 ];
 
 /** Recursively compute total byte size of a directory. */
@@ -26,6 +37,37 @@ async function dirSize(path: string): Promise<number> {
     }
   }
   return total;
+}
+
+/** Collect all entries from an async glob iterator into an array. */
+async function collectGlob(pattern: string) {
+  const entries = [];
+  for await (const entry of expandGlob(pattern)) {
+    if (entry.isFile) entries.push(entry);
+  }
+  return entries;
+}
+
+/** Copy static assets matching glob patterns into dist/. */
+async function copyStaticAssets() {
+  const cwd = Deno.cwd().replaceAll("\\", "/");
+
+  const allEntries = (await Promise.all(staticAssets.map(collectGlob))).flat();
+
+  await Promise.all(allEntries.map(async (entry) => {
+    // Compute destination: strip leading "src/" prefix if present, keep the rest
+    const relative = entry.path.replaceAll("\\", "/");
+    const relPath = relative.startsWith(cwd) ? relative.slice(cwd.length + 1) : relative;
+    const dest = relPath.startsWith("src/") ? relPath.slice("src/".length) : relPath;
+    const destPath = `dist/${dest}`;
+
+    await ensureDir(dirname(destPath));
+    try {
+      await copy(entry.path, destPath, { overwrite: true });
+    } catch {
+      // File may not exist yet during initial scaffold
+    }
+  }));
 }
 
 async function build() {
@@ -55,70 +97,7 @@ async function build() {
   });
 
   // Copy static assets to dist
-  await ensureDir("dist/popup");
-  await ensureDir("dist/shared");
-  try {
-    await copy("src/popup/index.html", "dist/popup/index.html", {
-      overwrite: true,
-    });
-  } catch {
-    // index.html may not exist yet during initial scaffold
-  }
-  try {
-    await copy("src/popup/styles.css", "dist/popup/styles.css", {
-      overwrite: true,
-    });
-  } catch {
-    // styles.css may not exist yet during initial scaffold
-  }
-  try {
-    await copy("src/shared/base.css", "dist/shared/base.css", {
-      overwrite: true,
-    });
-  } catch {
-    // base.css may not exist yet during initial scaffold
-  }
-
-  // Copy chart static assets to dist
-  await ensureDir("dist/chart");
-  try {
-    await copy("src/chart/index.html", "dist/chart/index.html", {
-      overwrite: true,
-    });
-  } catch {
-    // index.html may not exist yet during initial scaffold
-  }
-  try {
-    await copy("src/chart/styles.css", "dist/chart/styles.css", {
-      overwrite: true,
-    });
-  } catch {
-    // styles.css may not exist yet during initial scaffold
-  }
-
-  // Copy compare static assets to dist
-  await ensureDir("dist/compare");
-  try {
-    await copy("src/compare/index.html", "dist/compare/index.html", {
-      overwrite: true,
-    });
-  } catch {
-    // index.html may not exist yet during initial scaffold
-  }
-  try {
-    await copy("src/compare/styles.css", "dist/compare/styles.css", {
-      overwrite: true,
-    });
-  } catch {
-    // styles.css may not exist yet during initial scaffold
-  }
-
-  // Copy manifest.json to dist
-  try {
-    await copy("manifest.json", "dist/manifest.json", { overwrite: true });
-  } catch {
-    // manifest.json may not exist yet
-  }
+  await copyStaticAssets();
 
   esbuild.stop();
 

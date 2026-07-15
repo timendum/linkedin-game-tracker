@@ -4,9 +4,20 @@
   "version": "0.0.1",
   "description": "Automatically tracks your LinkedIn game performance and displays statistics.",
   "permissions": [],
+  "icons": {
+    "32": "icons/icon32.png",
+    "64": "icons/icon64.png",
+    "128": "icons/icon128.png"
+  },
+
   "action": {
     "default_popup": "popup/index.html",
-    "default_title": "LinkedIn Games Tracker"
+    "default_title": "LinkedIn Games Tracker",
+    "default_icon": {
+      "32": "icons/icon32.png",
+      "64": "icons/icon64.png",
+      "128": "icons/icon128.png"
+    }
   },
   "background": {
     "service_worker": "background/service-worker.js"
