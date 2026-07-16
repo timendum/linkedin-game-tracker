@@ -529,9 +529,11 @@ class ResultScraper {
    */
   private async checkStalenessAndShow(): Promise<void> {
     try {
+      const todayDate = Temporal.Now.plainDateISO().toString();
       const latestScrapeTime = await browserAPI.runtime.sendMessage({
         type: MessageType.GET_LATEST_SCRAPE_TIME,
         gameType: this.gameType,
+        excludeDate: todayDate,
       }) as string | null;
 
       let isStale: boolean;

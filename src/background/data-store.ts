@@ -109,8 +109,7 @@ export class DataStore {
   /** Retrieve sessions for a single game type using the by-game-type index */
   private async loadSessionsForGame(gameType: GameType): Promise<GameSession[]> {
     const db = await this.getDB();
-    const raw = await db.getAllFromIndex("sessions", "by-game-type", gameType);
-    return raw.map((item) => narrowSession(item as unknown as Record<string, unknown>));
+    return await db.getAllFromIndex("sessions", "by-game-type", gameType);
   }
 
   /**
@@ -418,20 +417,33 @@ export class DataStore {
   }
 
   /**
-   * Get the most recent scrapedAt timestamp for a given game type.
-   * Returns the ISO timestamp string or null if no sessions exist for that game.
+   * Get the most recent scrapedAt timestamp for a given game type,
+   * excluding sessions from the given date. This prevents today's scrape
+   * from always returning "now", so the staleness check works correctly
+   * (it compares against the latest scrape from a prior day).
    */
-  async getLatestScrapeTime(gameType: GameType): Promise<string | null> {
+  async getLatestScrapeTime(gameType: GameType, excludeDate?: string): Promise<string | null> {
     const sessions = await this.loadSessionsForGame(gameType);
     if (sessions.length === 0) return null;
 
     let latest: string | null = null;
     for (const session of sessions) {
+      if (excludeDate && session.date === excludeDate) continue;
       if (!latest || session.scrapedAt > latest) {
         latest = session.scrapedAt;
       }
     }
     return latest;
+  }
+
+  /**
+   * Retrieve every session in the database.
+   * Used for CSV export.
+   */
+  async getAllSessions(): Promise<GameSession[]> {
+    const db = await this.getDB();
+    const raw = await db.getAll("sessions");
+    return raw.map((item) => narrowSession(item as unknown as Record<string, unknown>));
   }
 
   /**

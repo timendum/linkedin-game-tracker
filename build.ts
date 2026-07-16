@@ -3,8 +3,7 @@ import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { copy } from "@std/fs/copy";
 import { ensureDir } from "@std/fs/ensure-dir";
 import { expandGlob } from "@std/fs/expand-glob";
-import { dirname, resolve, join as joinPath } from "@std/path";
-
+import { dirname, join as joinPath, resolve } from "@std/path";
 
 /** Target browser to build for. Set via --target=firefox argument. */
 type BuildTarget = "chrome" | "firefox";
@@ -22,6 +21,7 @@ const entryPoints = [
   { in: "src/popup/main.tsx", out: "popup/main" },
   { in: "src/chart/main.tsx", out: "chart/main" },
   { in: "src/compare/main.tsx", out: "compare/main" },
+  { in: "src/settings/main.tsx", out: "settings/main" },
   { in: "src/content/game-scraper.ts", out: "content/game-scraper" },
   { in: "src/content/result-scraper.ts", out: "content/result-scraper" },
   { in: "src/background/service-worker.ts", out: "background/service-worker" },
@@ -32,6 +32,7 @@ const staticAssets = [
   "src/popup/*.{html,css}",
   "src/chart/*.{html,css}",
   "src/compare/*.{html,css}",
+  "src/settings/*.{html,css}",
   "src/shared/*.css",
   "icons/*.png",
 ];
@@ -138,7 +139,7 @@ async function build() {
 
   // Clean dist directory
   try {
-    await Deno.remove("dist", { recursive: true });
+    await Deno.remove(outdir, { recursive: true });
   } catch (err) {
     if (!(err instanceof Deno.errors.NotFound)) throw err;
   }

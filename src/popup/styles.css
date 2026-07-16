@@ -27,8 +27,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow-y: auto;
-  max-height: calc(600px - 120px);
 }
 
 /* Today Header */
@@ -706,4 +704,22 @@ body {
 
 .full-compare-btn:hover {
   background: var(--color-brand-bg);
+}
+
+/* Popup Footer */
+.popup-footer {
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.popup-footer__link {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.popup-footer__link:hover {
+  color: var(--color-brand);
+  text-decoration: underline;
 }

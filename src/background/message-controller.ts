@@ -5,7 +5,7 @@
  * appropriate Data Store and Storage Monitor methods.
  */
 
-import type { GameSession, GameType, LeaderboardResultsPayload } from "../lib/types.ts";
+import type { GameSession, GameType, LeaderboardResultsPayload, SaveResult } from "../lib/types.ts";
 import { MessageType } from "../lib/types.ts";
 import { browserAPI } from "../lib/browser.ts";
 import { DataStore } from "./data-store.ts";
@@ -85,7 +85,30 @@ async function handleMessage(
 
     case MessageType.GET_LATEST_SCRAPE_TIME: {
       const gameType = message.gameType as GameType;
-      return await dataStore.getLatestScrapeTime(gameType);
+      const excludeDate = message.excludeDate as string | undefined;
+      return await dataStore.getLatestScrapeTime(gameType, excludeDate);
+    }
+
+    case MessageType.GET_ALL_SESSIONS: {
+      return await dataStore.getAllSessions();
+    }
+
+    case MessageType.IMPORT_SESSIONS: {
+      const sessions = message.payload as GameSession[];
+      // Group by gameType so saveSession can batch within a single transaction
+      const grouped = new Map<GameType, GameSession[]>();
+      for (const session of sessions) {
+        const existing = grouped.get(session.gameType) ?? [];
+        existing.push(session);
+        grouped.set(session.gameType, existing);
+      }
+      const allResults: SaveResult[] = [];
+      // Sequential to avoid problems with overlapping transactions
+      for (const batch of grouped.values()) {
+        const results = await dataStore.saveSession(batch); // oxlint-disable-line no-await-in-loop
+        allResults.push(...results);
+      }
+      return allResults;
     }
 
     default:

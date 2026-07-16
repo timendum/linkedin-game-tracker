@@ -110,6 +110,8 @@ export enum MessageType {
   GET_COMPARISON = "get_comparison",
   GET_ALL_FRIENDS = "get_all_friends",
   GET_LATEST_SCRAPE_TIME = "get_latest_scrape_time",
+  GET_ALL_SESSIONS = "get_all_sessions",
+  IMPORT_SESSIONS = "import_sessions",
 }
 
 /** Payload for LEADERBOARD_RESULTS: bundles user + friends in one message to avoid race conditions */

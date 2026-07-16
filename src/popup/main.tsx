@@ -60,6 +60,11 @@ function App() {
     }
   }, [view]);
 
+  const openSettings = useCallback(() => {
+    const url = browserAPI.runtime.getURL("settings/index.html");
+    globalThis.location.assign(url);
+  }, []);
+
   return (
     <>
       {view.kind === "today" && (
@@ -84,6 +89,14 @@ function App() {
           friendName={view.friendName}
           onBack={handleCompareBack}
         />
+      )}
+
+      {view.kind === "today" && (
+        <footer class="popup-footer">
+          <a class="popup-footer__link" href="#" onClick={openSettings}>
+            ⚙ Settings
+          </a>
+        </footer>
       )}
     </>
   );

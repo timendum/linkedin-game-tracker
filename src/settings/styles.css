@@ -1,0 +1,106 @@
+@import "../shared/base.css";
+
+body {
+  width: 400px;
+  min-height: 300px;
+}
+
+#app {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Back button (same style as game-detail-view) */
+.back-btn {
+  font-size: 13px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-brand);
+  cursor: pointer;
+  font-weight: 500;
+  text-align: left;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+  background: none;
+}
+
+.settings-header .back-btn {
+  margin-left: auto;
+}
+
+.settings-header__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-brand);
+  margin: 0;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-section__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.settings-section__description {
+  font-size: 13px;
+  color: var(--color-text-faint);
+}
+
+.settings-btn {
+  align-self: flex-start;
+  font-size: 13px;
+  padding: 8px 16px;
+  border: 1px solid var(--color-brand);
+  border-radius: 6px;
+  background: var(--color-brand);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.settings-btn:hover {
+  background: color-mix(in srgb, var(--color-brand) 85%, black);
+  border-color: color-mix(in srgb, var(--color-brand) 85%, black);
+}
+
+.settings-btn:active {
+  background: color-mix(in srgb, var(--color-brand) 70%, black);
+}
+
+.settings-file-input {
+  display: none;
+}
+
+.settings-status {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: pre-line;
+}
+
+.settings-status--success {
+  color: #28a745;
+}
+
+.settings-status--error {
+  color: var(--color-error-text);
+}
