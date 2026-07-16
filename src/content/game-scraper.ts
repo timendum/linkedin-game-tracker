@@ -228,7 +228,7 @@ function showErrorToast(message: string, durationMs = 5000): void {
     "color: #ffffff",
     "border-radius: 8px",
     "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    "font-size: 14px",
+    "font-size: var(--font-size-base)px",
     "line-height: 1.4",
     "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15)",
     "max-width: 360px",

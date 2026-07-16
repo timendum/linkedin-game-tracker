@@ -3,8 +3,8 @@
     "build": "deno run --allow-read --allow-write --allow-env --allow-run build.ts",
     "build:firefox": "deno run --allow-read --allow-write --allow-env --allow-run build.ts --target=firefox",
     "check": "deno check src/**/*.ts src/**/*.tsx",
-    "test": "deno test --allow-read --allow-write",
-    "xlint": "deno run --allow-env --allow-ffi  oxlint"
+    "test": "deno test",
+    "xlint": "deno run --allow-env --allow-ffi oxlint"
   },
   "imports": {
     "preact": "npm:preact@10.25.4",

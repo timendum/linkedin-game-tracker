@@ -20,30 +20,13 @@ body {
   border-bottom: 1px solid var(--color-border);
 }
 
-/* Back button (same style as game-detail-view) */
-.back-btn {
-  font-size: 13px;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--color-brand);
-  cursor: pointer;
-  font-weight: 500;
-  text-align: left;
-}
-
-.back-btn:hover {
-  text-decoration: underline;
-  background: none;
-}
-
 .settings-header .back-btn {
   margin-left: auto;
 }
 
 .settings-header__title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-heading);
   color: var(--color-brand);
   margin: 0;
 }
@@ -55,8 +38,8 @@ body {
 }
 
 .settings-section__title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--font-size-base)px;
+  font-weight: var(--font-weight-heading);
   color: var(--color-text-muted);
 }
 

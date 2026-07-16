@@ -17,7 +17,7 @@ body {
 
 /* Empty state */
 .empty-state-message {
-  font-size: 14px;
+  font-size: var(--font-size-base)px;
   color: var(--color-text-faint);
   line-height: 1.6;
 }
@@ -39,13 +39,13 @@ body {
 }
 
 .today-header__date {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-heading);
   color: var(--color-text-primary);
 }
 
 .today-header__score {
-  font-size: 15px;
+  font-size: var(--font-size-title);
   font-weight: 700;
   color: var(--color-brand);
   background: var(--color-brand-bg);
@@ -62,17 +62,12 @@ body {
 
 /* Today Card – base */
 .today-card {
-  padding: 8px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
   gap: 4px;
 }
 
 /* Today Card – played state */
 .today-card--played {
-  background: var(--color-brand-surface);
+  opacity: 1;
 }
 
 /* Today Card – unplayed state */
@@ -89,8 +84,8 @@ body {
 }
 
 .today-card__name {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--font-size-base)px;
+  font-weight: var(--font-weight-heading);
   color: var(--color-brand);
 }
 
@@ -172,22 +167,9 @@ body {
   padding: 4px 12px;
 }
 
-/* Back button */
+/* Back button – popup-specific override */
 .back-btn {
-  font-size: 13px;
-  padding: 0;
   margin-bottom: -8px;
-  border: none;
-  background: none;
-  color: var(--color-brand);
-  cursor: pointer;
-  font-weight: 500;
-  text-align: left;
-}
-
-.back-btn:hover {
-  text-decoration: underline;
-  background: none;
 }
 
 /* Game Detail View */
@@ -199,12 +181,6 @@ body {
 
 /* Detail Card – section container */
 .detail-card {
-  padding: 10px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-brand-surface);
-  display: flex;
-  flex-direction: column;
   gap: 8px;
 }
 
@@ -222,8 +198,8 @@ body {
 }
 
 .game-name {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-heading);
   color: var(--color-brand);
   margin: 0;
 }
@@ -261,7 +237,7 @@ body {
 }
 
 .personal-stats-row strong {
-  font-weight: 600;
+  font-weight: var(--font-weight-heading);
   color: var(--color-text-muted);
   margin-right: 4px;
 }
@@ -316,7 +292,7 @@ body {
 
 .friends-leaderboard th {
   text-align: left;
-  font-weight: 600;
+  font-weight: var(--font-weight-heading);
   color: var(--color-text-muted);
   padding: 4px 6px;
   border-bottom: 1px solid var(--color-border);
@@ -330,7 +306,7 @@ body {
 }
 
 .friends-leaderboard .you-row {
-  font-weight: 600;
+  font-weight: var(--font-weight-heading);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -401,7 +377,7 @@ body {
 /* Rank Chart Button (inside day-navigator) */
 .day-navigator__chart-btn {
   margin-left: auto;
-  font-size: 14px;
+  font-size: var(--font-size-base)px;
   padding: 4px 8px;
   line-height: 1;
 }
@@ -438,8 +414,8 @@ body {
 }
 
 .rank-chart-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--font-size-base)px;
+  font-weight: var(--font-weight-heading);
   color: var(--color-text-primary);
 }
 
@@ -477,8 +453,8 @@ body {
 }
 
 .comparison-header__title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-heading);
   color: var(--color-brand);
   margin: 0;
 }
@@ -560,7 +536,7 @@ body {
 
 .stats-comparison__table th {
   text-align: center;
-  font-weight: 600;
+  font-weight: var(--font-weight-heading);
   color: var(--color-text-muted);
   padding: 4px 8px;
   border-bottom: 1px solid var(--color-border);

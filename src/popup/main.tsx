@@ -41,24 +41,21 @@ function App() {
   const handleGameSelect = useCallback((gameType: GameType) => {
     setError(null);
     setView({ kind: "game", gameType });
-  }, []);
+  }, [setView, setError]);
 
   const handleBack = useCallback(() => {
-    setView({ kind: "today" });
+    if (view.kind == "compare") {
+      setView({ kind: "game", gameType: view.gameType });
+    } else {
+      setView({ kind: "today" });
+    }
     setError(null);
-  }, []);
+  }, [view, setView, setError]);
 
   const handleCompare = useCallback((gameType: GameType, friendName: string) => {
     setError(null);
     setView({ kind: "compare", gameType, friendName });
-  }, []);
-
-  const handleCompareBack = useCallback(() => {
-    setError(null);
-    if (view.kind == "game") {
-      setView({ kind: "game", gameType: view.gameType });
-    }
-  }, [view]);
+  }, [setView, setError]);
 
   const openSettings = useCallback(() => {
     const url = browserAPI.runtime.getURL("settings/index.html");
@@ -87,7 +84,7 @@ function App() {
         <ComparisonView
           gameType={view.gameType}
           friendName={view.friendName}
-          onBack={handleCompareBack}
+          onBack={handleBack}
         />
       )}
 

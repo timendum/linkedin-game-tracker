@@ -27,6 +27,12 @@
   --color-error-text: #721c24;
   --color-error-bg: #f8d7da;
 
+  /* Typography */
+  --font-size-base: 14px;
+  --font-size-title: 15px;
+  --font-size-heading: 18px;
+  --font-weight-heading: 600;
+
   /* Pill tiers */
   --pill-excellent: #28a745;
   --pill-great: #17a2b8;
@@ -45,7 +51,7 @@
 /* Base typography */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 14px;
+  font-size: var(--font-size-base)px;
   line-height: 1.5;
   background: var(--color-bg);
   color: var(--color-text-primary);
@@ -114,7 +120,7 @@ a:hover {
 .loading-indicator {
   text-align: center;
   padding: 24px;
-  font-size: 14px;
+  font-size: var(--font-size-base)px;
   color: var(--color-text-faint);
 }
 
@@ -124,4 +130,33 @@ a:hover {
   color: var(--color-error-text);
   background: var(--color-error-bg);
   border-radius: 6px;
+}
+
+/* Back button */
+.back-btn {
+  font-size: 13px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-brand);
+  cursor: pointer;
+  font-weight: 500;
+  align-self: flex-end;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+  background: none;
+}
+
+/* Shared card base */
+.card,
+.today-card,
+.detail-card {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-brand-surface);
 }

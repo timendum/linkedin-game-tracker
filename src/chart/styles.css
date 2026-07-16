@@ -19,13 +19,13 @@ body {
 }
 
 .chart-page__title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-heading);
   color: var(--color-text-primary);
 }
 
 .chart-page__game-select {
-  font-size: 14px;
+  font-size: var(--font-size-base)px;
   color: var(--color-text-primary);
   font-weight: 500;
   padding: 6px 12px;

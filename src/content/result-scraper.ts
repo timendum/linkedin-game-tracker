@@ -579,7 +579,7 @@ class ResultScraper {
         "align-items: center",
         "justify-content: center",
         "margin-left: 6px",
-        "font-size: 14px",
+        "font-size: var(--font-size-base)px",
         "width: 24px",
         "height: 24px",
         "background: #fef9e7",

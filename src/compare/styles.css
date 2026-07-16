@@ -2,7 +2,7 @@
 
 /* Compare page overrides */
 body {
-  background: var(--color-surface);
+  background: var(--color-bg);
   padding: 24px;
 }
 
@@ -20,20 +20,20 @@ body {
 }
 
 .compare-page__title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-heading);
   color: var(--color-text-primary);
 }
 
 .compare-page__subtitle {
-  font-size: 14px;
+  font-size: var(--font-size-base)px;
   color: var(--color-text-muted);
   margin-left: 12px;
 }
 
 /* Overall summary card */
 .compare-page__overall {
-  background: var(--color-bg);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 20px;
@@ -41,8 +41,8 @@ body {
 }
 
 .compare-page__overall-title {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-heading);
   margin-bottom: 12px;
   color: var(--color-text-primary);
 }
@@ -115,7 +115,7 @@ body {
 
 /* Outcome heatmap grid */
 .compare-page__heatmap {
-  background: var(--color-bg);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 20px;
@@ -123,8 +123,8 @@ body {
 }
 
 .compare-page__heatmap-title {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-heading);
   margin-bottom: 12px;
   color: var(--color-text-primary);
 }
@@ -261,8 +261,8 @@ body {
 }
 
 .game-card__name {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-heading);
   color: var(--color-text-primary);
 }
 
@@ -309,7 +309,7 @@ body {
 
 .game-card__stats .better {
   color: #28a745;
-  font-weight: 600;
+  font-weight: var(--font-weight-heading);
 }
 
 .game-card__stats .worse {
@@ -356,7 +356,7 @@ body {
 }
 
 .friend-autocomplete__input {
-  font-size: 14px;
+  font-size: var(--font-size-base)px;
   padding: 6px 10px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
