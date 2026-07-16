@@ -10,6 +10,7 @@ help:
 build:
   @echo "==> build"
   deno task build
+  deno task build --target=firefox
 
 # type-check all TypeScript sources
 check:

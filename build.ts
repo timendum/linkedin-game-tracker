@@ -3,7 +3,20 @@ import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { copy } from "@std/fs/copy";
 import { ensureDir } from "@std/fs/ensure-dir";
 import { expandGlob } from "@std/fs/expand-glob";
-import { dirname, resolve } from "@std/path";
+import { dirname, resolve, join as joinPath } from "@std/path";
+
+
+/** Target browser to build for. Set via --target=firefox argument. */
+type BuildTarget = "chrome" | "firefox";
+
+function parseBuildTarget(): BuildTarget {
+  const targetArg = Deno.args.find((a) => a.startsWith("--target="));
+  if (targetArg) {
+    const value = targetArg.split("=")[1];
+    if (value === "firefox") return "firefox";
+  }
+  return "chrome";
+}
 
 const entryPoints = [
   { in: "src/popup/main.tsx", out: "popup/main" },
@@ -21,7 +34,6 @@ const staticAssets = [
   "src/compare/*.{html,css}",
   "src/shared/*.css",
   "icons/*.png",
-  "manifest.json",
 ];
 
 /** Recursively compute total byte size of a directory. */
@@ -49,7 +61,7 @@ async function collectGlob(pattern: string) {
 }
 
 /** Copy static assets matching glob patterns into dist/. */
-async function copyStaticAssets() {
+async function copyStaticAssets(outdir: string) {
   const cwd = Deno.cwd().replaceAll("\\", "/");
 
   const allEntries = (await Promise.all(staticAssets.map(collectGlob))).flat();
@@ -59,7 +71,7 @@ async function copyStaticAssets() {
     const relative = entry.path.replaceAll("\\", "/");
     const relPath = relative.startsWith(cwd) ? relative.slice(cwd.length + 1) : relative;
     const dest = relPath.startsWith("src/") ? relPath.slice("src/".length) : relPath;
-    const destPath = `dist/${dest}`;
+    const destPath = joinPath(outdir, dest);
 
     await ensureDir(dirname(destPath));
     try {
@@ -70,7 +82,60 @@ async function copyStaticAssets() {
   }));
 }
 
+/**
+ * Generate the manifest.json for the given target and write it to dist/.
+ *
+ * For Chrome: copies manifest.json as-is.
+ * For Firefox: deep-merges manifest.firefox.json overrides into manifest.json.
+ *   - Keys set to `null` in the override are removed from the output.
+ *   - Objects are merged recursively; scalars/arrays are replaced.
+ */
+async function generateManifest(target: BuildTarget, outdir: string) {
+  const baseText = await Deno.readTextFile("manifest.json");
+  const base = JSON.parse(baseText);
+  const manifestPaht = joinPath(outdir, "/manifest.json");
+
+  if (target === "chrome") {
+    await Deno.writeTextFile(manifestPaht, JSON.stringify(base, null, 2));
+    return;
+  }
+
+  // Firefox: apply overrides
+  const overridesText = await Deno.readTextFile("manifest.firefox.json");
+  const overrides = JSON.parse(overridesText);
+  const merged = applyOverrides(base, overrides);
+  await Deno.writeTextFile(manifestPaht, JSON.stringify(merged, null, 2));
+}
+
+/**
+ * Recursively apply overrides to a base object.
+ * - null values delete the key from the result.
+ * - Objects are merged recursively.
+ * - All other values replace the base value.
+ */
+// deno-lint-ignore no-explicit-any
+function applyOverrides(base: any, overrides: any): any {
+  const result = { ...base };
+  for (const key of Object.keys(overrides)) {
+    const val = overrides[key];
+    if (val === null) {
+      delete result[key];
+    } else if (
+      typeof val === "object" && !Array.isArray(val) &&
+      typeof result[key] === "object" && !Array.isArray(result[key])
+    ) {
+      result[key] = applyOverrides(result[key], val);
+    } else {
+      result[key] = val;
+    }
+  }
+  return result;
+}
+
 async function build() {
+  const target = parseBuildTarget();
+  const outdir = joinPath("dist", target);
+
   // Clean dist directory
   try {
     await Deno.remove("dist", { recursive: true });
@@ -79,14 +144,14 @@ async function build() {
   }
 
   // Ensure dist directory exists
-  await ensureDir("dist");
+  await ensureDir(outdir);
 
   // Bundle TypeScript entry points with JSX support for Preact
   // Uses deno-esbuild-loader to resolve Deno import maps (npm: specifiers)
   await esbuild.build({
     entryPoints: entryPoints.map((ep) => ({ in: ep.in, out: ep.out })),
     bundle: true,
-    outdir: "dist",
+    outdir,
     format: "esm",
     target: "es2023",
     minify: false,
@@ -97,15 +162,18 @@ async function build() {
   });
 
   // Copy static assets to dist
-  await copyStaticAssets();
+  await copyStaticAssets(outdir);
+
+  // Generate the appropriate manifest for the target browser
+  await generateManifest(target, outdir);
 
   esbuild.stop();
 
   // Report sizes
-  const distPath = resolve("dist");
+  const distPath = resolve(outdir);
   const totalBytes = await dirSize(distPath);
   const kb = (totalBytes / 1024).toFixed(1);
-  console.log(`Build complete → ${distPath}`);
+  console.log(`Build complete (${target}) → ${distPath}`);
   console.log(`  Size: ${kb} KB`);
 }
 
