@@ -8,7 +8,7 @@
     "jsr:@std/path@^1.0.6": "1.1.6",
     "npm:chart.js@4.4.7": "4.4.7",
     "npm:esbuild@0.24.2": "0.24.2",
-    "npm:fast-check@3.23.2": "3.23.2",
+    "npm:fast-check@4.9.0": "4.9.0",
     "npm:idb@8.0.3": "8.0.3",
     "npm:oxlint@^1.73.0": "1.73.0",
     "npm:preact@10.25.4": "10.25.4"
@@ -300,8 +300,8 @@
       "scripts": true,
       "bin": true
     },
-    "fast-check@3.23.2": {
-      "integrity": "sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==",
+    "fast-check@4.9.0": {
+      "integrity": "sha512-7ms6T7SybUev/PQITciI0yLM2pOSFy5zpG8Ty7tQofcVaQUvrMXp6CBwqF6fThLCLOrfBtuHAtwq6Yu4XPCllg==",
       "dependencies": [
         "pure-rand"
       ]
@@ -337,8 +337,8 @@
     "preact@10.25.4": {
       "integrity": "sha512-jLdZDb+Q+odkHJ+MpW/9U5cODzqnB+fy2EiHSZES7ldV5LK7yjlVzTp7R8Xy6W6y75kfK8iWYtFVH7lvjwrCMA=="
     },
-    "pure-rand@6.1.0": {
-      "integrity": "sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA=="
+    "pure-rand@8.4.2": {
+      "integrity": "sha512-vvuOGgcuPJAirlHvuQw1TrOiw7ptaIXXmIbNuiNOY6lNGJJH49PQ1Kj4nd783nPdQhQdicgOjVI2yI/9BD6/Ng=="
     }
   },
   "remote": {
@@ -466,7 +466,7 @@
       "jsr:@luca/esbuild-deno-loader@0.11",
       "npm:chart.js@4.4.7",
       "npm:esbuild@0.24.2",
-      "npm:fast-check@3.23.2",
+      "npm:fast-check@4.9.0",
       "npm:idb@8.0.3",
       "npm:oxlint@^1.73.0",
       "npm:preact@10.25.4"
