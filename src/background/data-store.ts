@@ -385,9 +385,8 @@ export class DataStore {
       valuesByDateAndPlayer.set(date, dayValues);
     }
 
-    // Build the response, filtering out players with insufficient data
-    const minEntries = Math.ceil((2 / 7) * days);
-    const players: PlayerRankHistory[] = [...playerSet]
+    // Build all players' rank data first
+    let players: PlayerRankHistory[] = [...playerSet]
       .map((playerName) => ({
         playerName,
         ranks: dates.map((date) => ({
@@ -395,8 +394,7 @@ export class DataStore {
           rank: ranksByDateAndPlayer.get(date)?.get(playerName) ?? null,
           value: valuesByDateAndPlayer.get(date)?.get(playerName) ?? null,
         })),
-      }))
-      .filter((p) => p.ranks.filter((r) => r.rank !== null).length >= minEntries);
+      }));
 
     // Trim leading days where no player has data
     const dayCount = players[0]?.ranks.length ?? 0;
@@ -412,6 +410,11 @@ export class DataStore {
         p.ranks = p.ranks.slice(firstDataIndex);
       }
     }
+
+    // Filter out players with insufficient data (calculated after trim)
+    const effectiveDays = players[0]?.ranks.length ?? days;
+    const minEntries = Math.ceil((2 / 7) * effectiveDays);
+    players = players.filter((p) => p.ranks.filter((r) => r.rank !== null).length >= minEntries);
 
     return { gameType, days, players };
   }
