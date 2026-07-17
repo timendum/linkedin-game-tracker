@@ -20,27 +20,25 @@ import {
 
 interface GameHeaderProps {
   gameName: string;
-  gameType: GameType;
-  todaySession: GameSession | null;
+  onOpenChart: () => void;
+  showChart: boolean;
 }
 
-function GameHeader({ gameName, gameType, todaySession }: GameHeaderProps) {
-  const isPlayed = todaySession !== null && todaySession.completed;
-  const linkUrl = isPlayed ? `${GAME_URLS[gameType]}/results/` : GAME_URLS[gameType];
-  const linkLabel = isPlayed ? "Results ↗" : "Play ↗";
-
-  const handleLinkClick = useCallback((e: Event) => {
-    e.preventDefault();
-    browserAPI.tabs.create({ url: linkUrl });
-  }, [linkUrl]);
+function GameHeader({ gameName, onOpenChart, showChart }: GameHeaderProps) {
 
   return (
     <div class="game-header-wrapper">
       <div class="game-header">
         <h2 class="game-name">{gameName}</h2>
-        <a class="game-header__link" href={linkUrl} onClick={handleLinkClick}>
-          {linkLabel}
-        </a>
+        {showChart && (
+          <button
+            type="button"
+            class="full-compare-btn"
+            onClick={onOpenChart}
+          >
+            Full chart ↗
+          </button>
+        )}
       </div>
     </div>
   );
@@ -50,17 +48,32 @@ interface TodayStatsProps {
   todaySession: GameSession | null;
   historyPercentile: number | null;
   friendsPercentile: number | null;
+  gameType: GameType;
 }
 
-function TodayStats({ todaySession, historyPercentile, friendsPercentile }: TodayStatsProps) {
+function TodayStats(
+  { todaySession, historyPercentile, friendsPercentile, gameType }: TodayStatsProps,
+) {
   const isPlayed = todaySession !== null && todaySession.completed;
   const todayResult = isPlayed ? formatTodayResult(todaySession) : "Not played";
   const pills = buildPercentilePills(historyPercentile, friendsPercentile);
+  const linkUrl = isPlayed ? `${GAME_URLS[gameType]}/results/` : GAME_URLS[gameType];
+  const linkLabel = isPlayed ? "Results ↗" : "Play ↗";
+
+  const handleLinkClick = useCallback((e: Event) => {
+    e.preventDefault();
+    browserAPI.tabs.create({ url: linkUrl });
+  }, [linkUrl]);
 
   return (
     <div class="today-stats">
-      <div class="today-stats__result">
-        <strong>Today</strong> {todayResult}
+      <div class="today-stats__top">
+        <div class="today-stats__result">
+          <strong>Today</strong> {todayResult}
+        </div>
+        <a class="today-stats__link" href={linkUrl} onClick={handleLinkClick}>
+          {linkLabel}
+        </a>
       </div>
       {pills.length > 0 && (
         <div class="today-stats__pills">
@@ -446,8 +459,8 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
         <div class="detail-card">
           <GameHeader
             gameName={GAME_DISPLAY_NAMES[data.gameType]}
-            gameType={data.gameType}
-            todaySession={data.todaySession}
+            onOpenChart={openChart}
+            showChart={data.trendValues.filter((v) => v !== null).length >= 2}
           />
         </div>
       )}
@@ -455,9 +468,21 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
       {data && data.personalBest === null && (
         <>
           <div class="detail-card">
-            <p class="empty-state-message">
-              No game data yet. Play a LinkedIn game to begin tracking.
-            </p>
+            <div class="empty-state-row">
+              <p class="empty-state-message">
+                No game data yet. Play a LinkedIn game to begin tracking.
+              </p>
+              <a
+                class="empty-state-row__link"
+                href={GAME_URLS[data.gameType]}
+                onClick={(e: Event) => {
+                  e.preventDefault();
+                  browserAPI.tabs.create({ url: GAME_URLS[data.gameType] });
+                }}
+              >
+                Play ↗
+              </a>
+            </div>
           </div>
         </>
       )}
@@ -469,6 +494,7 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
               todaySession={data.todaySession}
               historyPercentile={data.historyPercentile}
               friendsPercentile={data.friendsPercentile}
+              gameType={data.gameType}
             />
             <PersonalStatsRow
               personalBest={data.personalBest}
@@ -497,15 +523,6 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
                 selectedDate={selectedDate}
                 onDateChange={setSelectedDate}
               />
-              <button
-                type="button"
-                class="day-navigator__btn day-navigator__chart-btn"
-                onClick={openChart}
-                aria-label="Open rank chart"
-                title="Open rank chart"
-              >
-                📈
-              </button>
             </div>
           </div>
         </>

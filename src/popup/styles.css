@@ -204,19 +204,67 @@ body {
   margin: 0;
 }
 
-.game-header__link {
-  font-size: 13px;
+.game-header__linkedin-link {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.game-header__linkedin-link:hover {
+  color: var(--color-brand);
+  text-decoration: underline;
+}
+
+/* Empty state row: message left, link right */
+.empty-state-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.empty-state-row__link {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  color: var(--color-brand);
+  border: 1px solid var(--color-brand);
+  border-radius: 6px;
+  background: var(--color-bg);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.empty-state-row__link:hover {
+  background: var(--color-brand-bg);
+}
+
+/* Percentile Pills container (game detail view) */
+.today-stats__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.today-stats__link {
+  flex-shrink: 0;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-brand);
   text-decoration: none;
   white-space: nowrap;
 }
 
-.game-header__link:hover {
+.today-stats__link:hover {
+  color: var(--color-brand);
   text-decoration: underline;
 }
 
-/* Percentile Pills container (game detail view) */
 .today-stats__pills {
   display: flex;
   flex-wrap: wrap;
