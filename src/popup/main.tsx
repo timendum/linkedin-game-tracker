@@ -38,22 +38,35 @@ function App() {
     });
   }, []);
 
+  // Listen for browser back navigation (Alt+Left, mouse back button, etc.)
+  useEffect(() => {
+    const onPopState = () => {
+      setView((prev) => {
+        if (prev.kind === "compare") {
+          return { kind: "game", gameType: prev.gameType };
+        }
+        return { kind: "today" };
+      });
+      setError(null);
+    };
+    globalThis.addEventListener("popstate", onPopState);
+    return () => globalThis.removeEventListener("popstate", onPopState);
+  }, []);
+
   const handleGameSelect = useCallback((gameType: GameType) => {
     setError(null);
+    history.pushState({ kind: "game", gameType }, "");
     setView({ kind: "game", gameType });
   }, [setView, setError]);
 
   const handleBack = useCallback(() => {
-    if (view.kind == "compare") {
-      setView({ kind: "game", gameType: view.gameType });
-    } else {
-      setView({ kind: "today" });
-    }
-    setError(null);
-  }, [view, setView, setError]);
+    // Use history.back() so the popstate listener handles state transition
+    history.back();
+  }, []);
 
   const handleCompare = useCallback((gameType: GameType, friendName: string) => {
     setError(null);
+    history.pushState({ kind: "compare", gameType, friendName }, "");
     setView({ kind: "compare", gameType, friendName });
   }, [setView, setError]);
 
