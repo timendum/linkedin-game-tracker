@@ -201,6 +201,7 @@ function FriendAutocomplete(
   }, []);
 
   const handleFocus = useCallback(() => {
+    setInputValue("");
     setIsOpen(true);
   }, []);
 

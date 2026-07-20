@@ -62,6 +62,16 @@ function App() {
     globalThis.location.assign(url);
   }, []);
 
+  const openCompare = useCallback(() => {
+    const url = browserAPI.runtime.getURL("compare/index.html");
+    browserAPI.tabs.create({ url });
+  }, []);
+
+  const openChart = useCallback(() => {
+    const url = browserAPI.runtime.getURL("chart/index.html");
+    browserAPI.tabs.create({ url });
+  }, []);
+
   return (
     <>
       {view.kind === "today" && (
@@ -90,9 +100,30 @@ function App() {
 
       {view.kind === "today" && (
         <footer class="popup-footer">
-          <a class="popup-footer-link" href="#" onClick={openSettings}>
+          <button
+            class="popup-footer-link"
+            type="button"
+            onClick={openCompare}
+            title="Compare scores with friends in a full page"
+          >
+            ⚔ Head to Head
+          </button>
+          <button
+            class="popup-footer-link"
+            type="button"
+            onClick={openChart}
+            title="View performance charts and trends over time"
+          >
+            📊 Games trends
+          </button>
+          <button
+            class="popup-footer-link -popup-footer-settings"
+            type="button"
+            onClick={openSettings}
+            title="Configure extension settings"
+          >
             ⚙ Settings
-          </a>
+          </button>
         </footer>
       )}
     </>

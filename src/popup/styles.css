@@ -753,18 +753,40 @@ body {
 
 /* Popup Footer */
 .popup-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding-top: 12px;
   border-top: 1px solid var(--color-border);
 }
 
+.-popup-footer-settings {
+  margin-left: auto;
+}
+
 .popup-footer-link {
-  font-size: 13px;
-  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-brand);
   text-decoration: none;
   cursor: pointer;
+  padding: 6px 12px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  transition: background-color 0.15s, border-color 0.15s;
+  white-space: nowrap;
 }
 
 .popup-footer-link:hover {
-  color: var(--color-brand);
-  text-decoration: underline;
+  background: var(--color-brand-bg);
+  border-color: var(--color-brand);
+  text-decoration: none;
+}
+
+.popup-footer-link:active {
+  background: color-mix(in srgb, var(--color-brand) 15%, white);
 }

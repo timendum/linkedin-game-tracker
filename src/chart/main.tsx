@@ -167,7 +167,7 @@ function ChartPage() {
   }, [selectedGame]);
 
   const changeGame = useCallback(
-    (e: preact.JSX.TargetedEvent<HTMLSelectElement>) =>
+    (e: preact.TargetedEvent<HTMLSelectElement>) =>
       setSelectedGame(e.currentTarget.value as GameType),
     [setSelectedGame],
   );
