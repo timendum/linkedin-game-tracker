@@ -22,66 +22,49 @@ interface GameHeaderProps {
   gameName: string;
   onOpenChart: () => void;
   showChart: boolean;
+  linkUrl?: string;
+  linkLabel?: string;
+  onLinkClick?: (e: Event) => void;
 }
 
-function GameHeader({ gameName, onOpenChart, showChart }: GameHeaderProps) {
-
+function GameHeader(
+  { gameName, onOpenChart, showChart, linkUrl, linkLabel, onLinkClick }: GameHeaderProps,
+) {
   return (
-    <div class="game-header-wrapper">
-      <div class="game-header">
-        <h2 class="game-name">{gameName}</h2>
-        {showChart && (
-          <button
-            type="button"
-            class="full-compare-btn"
-            onClick={onOpenChart}
-          >
-            Full chart ↗
-          </button>
-        )}
-      </div>
+    <div class="game-header">
+      <h2 class="game-header-name">{gameName}</h2>
+      {linkUrl && (
+        <a class="game-header-link" href={linkUrl} onClick={onLinkClick}>
+          {linkLabel}
+        </a>
+      )}
+      {showChart && (
+        <button
+          type="button"
+          class="full-compare-btn"
+          onClick={onOpenChart}
+        >
+          Full chart ↗
+        </button>
+      )}
     </div>
   );
 }
 
 interface TodayStatsProps {
   todaySession: GameSession | null;
-  historyPercentile: number | null;
-  friendsPercentile: number | null;
-  gameType: GameType;
 }
 
 function TodayStats(
-  { todaySession, historyPercentile, friendsPercentile, gameType }: TodayStatsProps,
+  { todaySession }: TodayStatsProps,
 ) {
   const isPlayed = todaySession !== null && todaySession.completed;
   const todayResult = isPlayed ? formatTodayResult(todaySession) : "Not played";
-  const pills = buildPercentilePills(historyPercentile, friendsPercentile);
-  const linkUrl = isPlayed ? `${GAME_URLS[gameType]}/results/` : GAME_URLS[gameType];
-  const linkLabel = isPlayed ? "Results ↗" : "Play ↗";
-
-  const handleLinkClick = useCallback((e: Event) => {
-    e.preventDefault();
-    browserAPI.tabs.create({ url: linkUrl });
-  }, [linkUrl]);
 
   return (
     <div class="today-stats">
-      <div class="today-stats__top">
-        <div class="today-stats__result">
-          <strong>Today</strong> {todayResult}
-        </div>
-        <a class="today-stats__link" href={linkUrl} onClick={handleLinkClick}>
-          {linkLabel}
-        </a>
-      </div>
-      {pills.length > 0 && (
-        <div class="today-stats__pills">
-          {pills.map((pill) => (
-            <span key={pill.key} class={`today-card__pill ${pill.cssClass}`}>{pill.label}</span>
-          ))}
-        </div>
-      )}
+      <strong>Today</strong>
+      <span class="today-stats-value">{todayResult}</span>
     </div>
   );
 }
@@ -126,19 +109,25 @@ interface TrendSparklineProps {
 }
 
 function TrendSparkline({ values, days, gameType }: TrendSparklineProps) {
-  const normalized = normalizeTrend(values);
+  // Left-trim leading empty (null) days
+  let trimStart = 0;
+  while (trimStart < values.length && values[trimStart] === null) trimStart++;
+  const trimmedValues = values.slice(trimStart);
+  const trimmedDays = days - trimStart;
+
+  const normalized = normalizeTrend(trimmedValues);
   const isTimeBased = gameType !== "pinpoint";
 
   return (
     <div class="trend-sparkline">
-      <span class="trend-label">{days}d Trend</span>
+      <span class="trend-label">Last {trimmedDays}d Trend</span>
       <span class="trend-blocks">
         {normalized.map((v, i) => {
-          const raw = values[i];
+          const raw = trimmedValues[i];
           const tooltip = raw !== null ? (isTimeBased ? formatTime(raw) : String(raw)) : undefined;
           return (
             <span
-              key={`day-${days - i}`}
+              key={`day-${trimmedDays - i}`}
               class={`trend-bar${v === null ? " trend-bar--gap" : ""}`}
               // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
               style={v !== null ? { height: `${((v + 1) / 8) * 100}%` } : undefined}
@@ -315,25 +304,25 @@ function DayNavigator({ selectedDate, onDateChange }: DayNavigatorProps) {
     <>
       <button
         type="button"
-        class="day-navigator__btn"
+        class="day-navigator-btn"
         onClick={handlePrev}
         aria-label="Previous day"
       >
         ←
       </button>
-      <span class="day-navigator__label">
+      <span class="day-navigator-label">
         {formatDateLabel((selected || today).toString())}
       </span>
       {isAtToday
         ? (
-          <span class="day-navigator__btn day-navigator__btn--disabled" aria-disabled="true">
+          <span class="day-navigator-btn day-navigator-btn--disabled" aria-disabled="true">
             →
           </span>
         )
         : (
           <button
             type="button"
-            class="day-navigator__btn"
+            class="day-navigator-btn"
             onClick={handleNext}
             aria-label="Next day"
           >
@@ -343,7 +332,7 @@ function DayNavigator({ selectedDate, onDateChange }: DayNavigatorProps) {
       {!isAtToday && (
         <button
           type="button"
-          class="day-navigator__btn day-navigator__btn--reset"
+          class="day-navigator-btn day-navigator-btn--reset"
           onClick={handleReset}
           aria-label="Back to summary"
         >
@@ -447,6 +436,23 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
     const chartUrl = browserAPI.runtime.getURL(`chart/index.html?gameType=${gameType}`);
     browserAPI.tabs.create({ url: chartUrl });
   }, [gameType]);
+
+  const isPlayed = data?.todaySession !== null && data?.todaySession?.completed;
+  const gameLinkUrl = isPlayed ? `${GAME_URLS[gameType]}/results/` : GAME_URLS[gameType];
+  const gameLinkLabel = isPlayed ? "Results ↗" : "Play ↗";
+
+  const handleGameLinkClick = useCallback((e: Event) => {
+    e.preventDefault();
+    browserAPI.tabs.create({ url: gameLinkUrl });
+  }, [gameLinkUrl]);
+
+  const openGameLink = useCallback((e: Event) => {
+    e.preventDefault();
+    if (data) {
+      browserAPI.tabs.create({ url: GAME_URLS[data.gameType] });
+    }
+  }, [data]);
+
   return (
     <div class="game-detail">
       <button type="button" class="back-btn" onClick={onBack}>← Back</button>
@@ -461,71 +467,79 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
             gameName={GAME_DISPLAY_NAMES[data.gameType]}
             onOpenChart={openChart}
             showChart={data.trendValues.filter((v) => v !== null).length >= 2}
+            linkUrl={gameLinkUrl}
+            linkLabel={gameLinkLabel}
+            onLinkClick={handleGameLinkClick}
           />
+          {data.personalBest === null
+            ? (
+              <div class="empty-state-row">
+                <p class="empty-state-message">
+                  No game data yet. Play a LinkedIn game to begin tracking.
+                </p>
+                <a
+                  class="empty-state-link"
+                  href={GAME_URLS[data.gameType]}
+                  onClick={openGameLink}
+                >
+                  Play ↗
+                </a>
+              </div>
+            )
+            : (
+              <>
+                <TodayStats
+                  todaySession={data.todaySession}
+                />
+                <PersonalStatsRow
+                  personalBest={data.personalBest}
+                  median={data.median}
+                  gameType={data.gameType}
+                />
+                {data.trendValues.filter((v) => v !== null).length > 4 && (
+                  <TrendSparkline
+                    values={data.trendValues}
+                    days={data.trendDays}
+                    gameType={data.gameType}
+                  />
+                )}
+                {(() => {
+                  const pills = buildPercentilePills(
+                    data.historyPercentile,
+                    data.friendsPercentile,
+                  );
+                  return pills.length > 0
+                    ? (
+                      <div class="game-pills">
+                        {pills.map((pill) => (
+                          <span key={pill.key} class={`game-pill ${pill.cssClass}`}>
+                            {pill.label}
+                          </span>
+                        ))}
+                      </div>
+                    )
+                    : null;
+                })()}
+              </>
+            )}
         </div>
       )}
 
-      {data && data.personalBest === null && (
-        <>
-          <div class="detail-card">
-            <div class="empty-state-row">
-              <p class="empty-state-message">
-                No game data yet. Play a LinkedIn game to begin tracking.
-              </p>
-              <a
-                class="empty-state-row__link"
-                href={GAME_URLS[data.gameType]}
-                onClick={(e: Event) => {
-                  e.preventDefault();
-                  browserAPI.tabs.create({ url: GAME_URLS[data.gameType] });
-                }}
-              >
-                Play ↗
-              </a>
-            </div>
-          </div>
-        </>
-      )}
-
       {data && data.personalBest !== null && (
-        <>
-          <div class="detail-card">
-            <TodayStats
-              todaySession={data.todaySession}
-              historyPercentile={data.historyPercentile}
-              friendsPercentile={data.friendsPercentile}
-              gameType={data.gameType}
-            />
-            <PersonalStatsRow
-              personalBest={data.personalBest}
-              median={data.median}
-              gameType={data.gameType}
+        <div class="detail-card">
+          <FriendsLeaderboard
+            entries={displayedLeaderboard}
+            gameType={data.gameType}
+            dateColumnLabel={dateColumnLabel}
+            onCompare={onCompare ? handleCompare : undefined}
+          />
+          <div class="day-navigator">
+            <DayNavigator
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
             />
           </div>
-          {data.trendValues.filter((v) => v !== null).length > 4 && (
-            <div class="detail-card">
-              <TrendSparkline
-                values={data.trendValues}
-                days={data.trendDays}
-                gameType={data.gameType}
-              />
-            </div>
-          )}
-          <div class="detail-card">
-            <FriendsLeaderboard
-              entries={displayedLeaderboard}
-              gameType={data.gameType}
-              dateColumnLabel={dateColumnLabel}
-              onCompare={onCompare ? handleCompare : undefined}
-            />
-            <div class="day-navigator">
-              <DayNavigator
-                selectedDate={selectedDate}
-                onDateChange={setSelectedDate}
-              />
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

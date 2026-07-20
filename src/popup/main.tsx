@@ -90,7 +90,7 @@ function App() {
 
       {view.kind === "today" && (
         <footer class="popup-footer">
-          <a class="popup-footer__link" href="#" onClick={openSettings}>
+          <a class="popup-footer-link" href="#" onClick={openSettings}>
             ⚙ Settings
           </a>
         </footer>

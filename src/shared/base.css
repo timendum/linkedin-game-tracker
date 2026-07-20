@@ -51,7 +51,7 @@
 /* Base typography */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: var(--font-size-base)px;
+  font-size: var(--font-size-base);
   line-height: 1.5;
   background: var(--color-bg);
   color: var(--color-text-primary);
@@ -120,7 +120,7 @@ a:hover {
 .loading-indicator {
   text-align: center;
   padding: 24px;
-  font-size: var(--font-size-base)px;
+  font-size: var(--font-size-base);
   color: var(--color-text-faint);
 }
 
@@ -141,7 +141,7 @@ a:hover {
   color: var(--color-brand);
   cursor: pointer;
   font-weight: 500;
-  align-self: flex-end;
+  align-self: flex-start;
 }
 
 .back-btn:hover {

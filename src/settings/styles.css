@@ -9,41 +9,28 @@ body {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
-.settings-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.settings-header .back-btn {
-  margin-left: auto;
-}
-
-.settings-header__title {
+.settings-title {
   font-size: var(--font-size-heading);
   font-weight: var(--font-weight-heading);
-  color: var(--color-brand);
+  color: var(--color-text-primary);
   margin: 0;
 }
 
-.settings-section {
-  display: flex;
-  flex-direction: column;
+/* Card sections */
+.settings-card {
   gap: 8px;
 }
 
-.settings-section__title {
-  font-size: var(--font-size-base)px;
+.settings-card-title {
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-heading);
   color: var(--color-text-muted);
 }
 
-.settings-section__description {
+.settings-card-description {
   font-size: 13px;
   color: var(--color-text-faint);
 }

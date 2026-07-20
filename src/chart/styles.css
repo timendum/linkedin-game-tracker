@@ -11,21 +11,21 @@ body {
   margin: 0 auto;
 }
 
-.chart-page__header {
+.chart-page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
 }
 
-.chart-page__title {
+.chart-page-title {
   font-size: var(--font-size-heading);
   font-weight: var(--font-weight-heading);
   color: var(--color-text-primary);
 }
 
-.chart-page__game-select {
-  font-size: var(--font-size-base)px;
+.chart-page-game-select {
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
   font-weight: 500;
   padding: 6px 12px;
@@ -36,12 +36,12 @@ body {
   outline: none;
 }
 
-.chart-page__game-select:focus {
+.chart-page-game-select:focus {
   border-color: #0a66c2;
   box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.2);
 }
 
-.chart-page__card {
+.chart-page-card {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 10px;

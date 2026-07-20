@@ -233,14 +233,12 @@ function Settings() {
 
   return (
     <>
-      <div class="settings-header">
-        <h1 class="settings-header__title">Settings</h1>
-        <button type="button" class="back-btn" onClick={onBack}>← Back</button>
-      </div>
+      <button type="button" class="back-btn" onClick={onBack}>← Back</button>
+      <h1 class="settings-title">Settings</h1>
 
-      <div class="settings-section">
-        <h2 class="settings-section__title">Export Data</h2>
-        <p class="settings-section__description">
+      <div class="card settings-card">
+        <h2 class="settings-card-title">Export Data</h2>
+        <p class="settings-card-description">
           Download all your game sessions as a CSV file. Use this to back up your data or transfer
           it to another device.
         </p>
@@ -250,9 +248,9 @@ function Settings() {
         {exportStatus && <p class="settings-status">{exportStatus}</p>}
       </div>
 
-      <div class="settings-section">
-        <h2 class="settings-section__title">Import Data</h2>
-        <p class="settings-section__description">
+      <div class="card settings-card">
+        <h2 class="settings-card-title">Import Data</h2>
+        <p class="settings-card-description">
           Import game sessions from a CSV file. Existing records with the same game, date, and
           player will be updated if the values differ.
         </p>

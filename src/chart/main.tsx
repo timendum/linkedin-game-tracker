@@ -174,10 +174,10 @@ function ChartPage() {
 
   return (
     <div class="chart-page">
-      <div class="chart-page__header">
-        <h1 class="chart-page__title">Rank over time</h1>
+      <div class="chart-page-header">
+        <h1 class="chart-page-title">Rank over time</h1>
         <select
-          class="chart-page__game-select"
+          class="chart-page-game-select"
           value={selectedGame}
           onChange={changeGame}
           aria-label="Select game"
@@ -186,7 +186,7 @@ function ChartPage() {
           </option>)}
         </select>
       </div>
-      <div class="chart-page__card">
+      <div class="chart-page-card">
         {loading && <div class="loading-indicator">Loading chart...</div>}
         {error && <p class="error-message">{error}</p>}
         <div class="chart-canvas-wrapper">

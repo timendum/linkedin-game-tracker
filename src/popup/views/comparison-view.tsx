@@ -86,16 +86,13 @@ export function ComparisonView({ gameType, friendName, onBack }: ComparisonViewP
                 Compare all games ↗
               </button>
             </div>
-          </div>
 
-          <div class="detail-card">
             <H2HSummary h2h={data.h2h} friendName={data.friendName} />
           </div>
 
           <div class="detail-card">
             <StatsComparison data={data} />
           </div>
-
           {data.dailyResults.some((d) => d.outcome !== "incomplete") && (
             <div class="detail-card">
               <DailyTimeline results={data.dailyResults} gameType={gameType} />
@@ -114,8 +111,8 @@ function ComparisonHeader(
 ) {
   return (
     <div class="comparison-header">
-      <h2 class="comparison-header__title">{gameName}</h2>
-      <span class="comparison-header__subtitle">You vs {friendName}</span>
+      <h2 class="comparison-header-title">{gameName}</h2>
+      <span class="comparison-header-subtitle">You vs {friendName}</span>
     </div>
   );
 }
@@ -128,36 +125,36 @@ function H2HSummary(
 
   return (
     <div class="h2h-summary">
-      <div class="h2h-summary__record">
-        <span class="h2h-summary__win">{h2h.wins}W</span>
-        <span class="h2h-summary__separator">–</span>
-        <span class="h2h-summary__loss">{h2h.losses}L</span>
+      <div class="h2h-summary-record">
+        <span class="h2h-summary-win">{h2h.wins}W</span>
+        <span class="h2h-summary-separator">–</span>
+        <span class="h2h-summary-loss">{h2h.losses}L</span>
         {h2h.ties > 0 && (
           <>
-            <span class="h2h-summary__separator">–</span>
-            <span class="h2h-summary__tie">{h2h.ties}T</span>
+            <span class="h2h-summary-separator">–</span>
+            <span class="h2h-summary-tie">{h2h.ties}T</span>
           </>
         )}
       </div>
-      <div class="h2h-summary__bar">
+      <div class="h2h-summary-bar">
         {total > 0 && (
           <>
             <div
-              class="h2h-summary__bar-wins"
+              class="h2h-summary-bar-wins"
               // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
               style={{ width: `${(h2h.wins / total) * 100}%` }}
               title={`You: ${h2h.wins} wins`}
             />
             {h2h.ties > 0 && (
               <div
-                class="h2h-summary__bar-ties"
+                class="h2h-summary-bar-ties"
                 // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
                 style={{ width: `${(h2h.ties / total) * 100}%` }}
                 title={`Ties: ${h2h.ties}`}
               />
             )}
             <div
-              class="h2h-summary__bar-losses"
+              class="h2h-summary-bar-losses"
               // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
               style={{ width: `${(h2h.losses / total) * 100}%` }}
               title={`${friendName}: ${h2h.losses} wins`}
@@ -165,7 +162,7 @@ function H2HSummary(
           </>
         )}
       </div>
-      <span class="h2h-summary__rate">
+      <span class="h2h-summary-rate">
         {total > 0 ? `${winRate}% win rate over ${total} games` : "No common games yet"}
       </span>
     </div>
@@ -183,7 +180,7 @@ function StatsComparison({ data }: { data: ComparisonData }) {
 
   return (
     <div class="stats-comparison">
-      <table class="stats-comparison__table">
+      <table class="stats-comparison-table">
         <thead>
           <tr>
             <th></th>
@@ -193,7 +190,7 @@ function StatsComparison({ data }: { data: ComparisonData }) {
         </thead>
         <tbody>
           <tr>
-            <td class="stats-comparison__label">Personal Best</td>
+            <td class="stats-comparison-label">Personal Best</td>
             <td class={highlight(data.userPersonalBest, data.friendPersonalBest, true)}>
               {formatMetric(data.userPersonalBest)}
             </td>
@@ -202,7 +199,7 @@ function StatsComparison({ data }: { data: ComparisonData }) {
             </td>
           </tr>
           <tr>
-            <td class="stats-comparison__label">Median</td>
+            <td class="stats-comparison-label">Median</td>
             <td class={highlight(data.userMedian, data.friendMedian, true)}>
               {formatMetric(data.userMedian)}
             </td>
@@ -211,7 +208,7 @@ function StatsComparison({ data }: { data: ComparisonData }) {
             </td>
           </tr>
           <tr>
-            <td class="stats-comparison__label">Games Played</td>
+            <td class="stats-comparison-label">Games Played</td>
             <td>{data.userSessionCount}</td>
             <td>{data.friendSessionCount}</td>
           </tr>
@@ -225,11 +222,11 @@ function StatsComparison({ data }: { data: ComparisonData }) {
 function highlight(own: number | null, other: number | null, lowerIsBetter: boolean): string {
   if (own === null || other === null) return "";
   if (lowerIsBetter) {
-    if (own < other) return "stats-comparison__better";
-    if (own > other) return "stats-comparison__worse";
+    if (own < other) return "stats-comparison-better";
+    if (own > other) return "stats-comparison-worse";
   } else {
-    if (own > other) return "stats-comparison__better";
-    if (own < other) return "stats-comparison__worse";
+    if (own > other) return "stats-comparison-better";
+    if (own < other) return "stats-comparison-worse";
   }
   return "";
 }
@@ -247,15 +244,15 @@ function DailyTimeline(
 
   return (
     <div class="daily-timeline">
-      <span class="daily-timeline__title">Last 14 Days</span>
-      <div class="daily-timeline__grid">
+      <span class="daily-timeline-title">Last Days</span>
+      <div class="daily-timeline-grid">
         {results.map((day) => {
           const dateObj = Temporal.PlainDate.from(day.date);
           const label = dateObj.toLocaleString(undefined, { day: "2-digit", month: "2-digit" });
           return (
             <div
               key={day.date}
-              class={`daily-timeline__cell daily-timeline__cell--${day.outcome}`}
+              class={`daily-timeline-cell daily-timeline-cell--${day.outcome}`}
               title={`${label}: You ${formatValue(day.userValue)} / Friend ${
                 formatValue(day.friendValue)
               }`}
@@ -263,18 +260,18 @@ function DailyTimeline(
           );
         })}
       </div>
-      <div class="daily-timeline__legend">
-        <span class="daily-timeline__legend-item">
-          <span class="daily-timeline__dot daily-timeline__dot--win" /> Win
+      <div class="daily-timeline-legend">
+        <span class="daily-timeline-legend-item">
+          <span class="daily-timeline-dot daily-timeline-dot--win" /> Win
         </span>
-        <span class="daily-timeline__legend-item">
-          <span class="daily-timeline__dot daily-timeline__dot--loss" /> Loss
+        <span class="daily-timeline-legend-item">
+          <span class="daily-timeline-dot daily-timeline-dot--loss" /> Loss
         </span>
-        <span class="daily-timeline__legend-item">
-          <span class="daily-timeline__dot daily-timeline__dot--tie" /> Tie
+        <span class="daily-timeline-legend-item">
+          <span class="daily-timeline-dot daily-timeline-dot--tie" /> Tie
         </span>
-        <span class="daily-timeline__legend-item">
-          <span class="daily-timeline__dot daily-timeline__dot--incomplete" /> N/A
+        <span class="daily-timeline-legend-item">
+          <span class="daily-timeline-dot daily-timeline-dot--incomplete" /> N/A
         </span>
       </div>
     </div>

@@ -116,7 +116,7 @@ function extractStatusFromDOM(doc: Document): boolean | null {
   // Ember-based games (Mini Sudoku, Crossclimb, Pinpoint): "See results" as <button>
   const shareFooter = doc.querySelector(".games-share-footer");
   if (shareFooter) {
-    const btn = shareFooter.querySelector(".games-share-footer__share-btn");
+    const btn = shareFooter.querySelector(".games-share-footer-share-btn");
     if (btn && btn.textContent?.trim().includes("See results")) {
       return true;
     }
@@ -147,11 +147,11 @@ const extractors: Record<GameType, GameExtractor> = {
   pinpoint: {
     extractMetric(doc: Document): number | null {
       // Pinpoint score = number of clues the player revealed before guessing correctly.
-      // Cards revealed only at the end (after solving) get class "pinpoint__card--flip-end".
+      // Cards revealed only at the end (after solving) get class "pinpoint-card--flip-end".
       // Cards seen during play do NOT have that class.
       // Score = total flipped cards - cards with flip-end class.
-      const allFlipped = doc.querySelectorAll(".pinpoint__card__container.flipped");
-      const flipEndCards = doc.querySelectorAll(".pinpoint__card--flip-end");
+      const allFlipped = doc.querySelectorAll(".pinpoint-card-container.flipped");
+      const flipEndCards = doc.querySelectorAll(".pinpoint-card--flip-end");
 
       if (allFlipped.length === 5) {
         const score = 5 - flipEndCards.length;
@@ -193,8 +193,8 @@ const extractors: Record<GameType, GameExtractor> = {
       if (resultsLink) return true;
 
       // The answer area has a non-empty state when game is complete
-      const answerEl = doc.querySelector(".pinpoint__card__answer");
-      if (answerEl && !answerEl.classList.contains("pinpoint__card__answer--empty")) {
+      const answerEl = doc.querySelector(".pinpoint-card-answer");
+      if (answerEl && !answerEl.classList.contains("pinpoint-card-answer--empty")) {
         return true;
       }
 
@@ -228,7 +228,7 @@ function showErrorToast(message: string, durationMs = 5000): void {
     "color: #ffffff",
     "border-radius: 8px",
     "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    "font-size: var(--font-size-base)px",
+    "font-size: var(--font-size-base)",
     "line-height: 1.4",
     "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15)",
     "max-width: 360px",

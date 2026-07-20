@@ -53,14 +53,14 @@ function getLeaderboardDate(docs: Document[]): string {
  * (gameType + date + playerName="self") ensures deduplication in the data store.
  *
  * DOM Structure (observed via Playwright):
- * - Each player row: `.pr-connections-leaderboard-player__container`
- * - Player name: `.pr-connections-leaderboard-player__name`
- * - Score/time: `.pr-connections-leaderboard-player__score`
+ * - Each player row: `.pr-connections-leaderboard-player-container`
+ * - Player name: `.pr-connections-leaderboard-player-name`
+ * - Score/time: `.pr-connections-leaderboard-player-score`
  * - Pinpoint scores are plain numbers (1-5 guesses)
  * - Time-based scores are "M:SS" format (e.g., "0:31", "2:14")
  * - Incomplete time-based scores show "-:--" — skipped
  * - Current user's row has name "You" — extracted separately as user result
- * - "See more" button (`.pr-connections-leaderboard__see-more-button`) paginates the list
+ * - "See more" button (`.pr-connections-leaderboard-see-more-button`) paginates the list
  * - "See full leaderboard" button navigates to the full leaderboard page
  *
  * The scraper keeps observing the DOM so that when the user clicks "See more"
@@ -126,15 +126,15 @@ class ResultScraper {
 
     for (const doc of docs) {
       const rows = doc.querySelectorAll(
-        ".pr-connections-leaderboard-player__container",
+        ".pr-connections-leaderboard-player-container",
       );
 
       for (const row of rows) {
         const nameEl = row.querySelector(
-          ".pr-connections-leaderboard-player__name",
+          ".pr-connections-leaderboard-player-name",
         );
         const scoreEl = row.querySelector(
-          ".pr-connections-leaderboard-player__score",
+          ".pr-connections-leaderboard-player-score",
         );
 
         if (!nameEl || !scoreEl) continue;
@@ -166,15 +166,15 @@ class ResultScraper {
 
     for (const doc of docs) {
       const rows = doc.querySelectorAll(
-        ".pr-connections-leaderboard-player__container",
+        ".pr-connections-leaderboard-player-container",
       );
 
       for (const row of rows) {
         const nameEl = row.querySelector(
-          ".pr-connections-leaderboard-player__name",
+          ".pr-connections-leaderboard-player-name",
         );
         const scoreEl = row.querySelector(
-          ".pr-connections-leaderboard-player__score",
+          ".pr-connections-leaderboard-player-score",
         );
 
         if (!nameEl || !scoreEl) continue;
@@ -223,7 +223,7 @@ class ResultScraper {
 
       // Check for "See more" button (paginated full leaderboard)
       const seeMoreBtn = doc.querySelector(
-        ".pr-connections-leaderboard__see-more-button",
+        ".pr-connections-leaderboard-see-more-button",
       );
       if (seeMoreBtn) {
         return true;
@@ -355,7 +355,7 @@ class ResultScraper {
     let totalRows = 0;
     for (const doc of docs) {
       const rows = doc.querySelectorAll(
-        ".pr-connections-leaderboard-player__container",
+        ".pr-connections-leaderboard-player-container",
       );
       totalRows += rows.length;
     }
@@ -579,7 +579,7 @@ class ResultScraper {
         "align-items: center",
         "justify-content: center",
         "margin-left: 6px",
-        "font-size: var(--font-size-base)px",
+        "font-size: var(--font-size-base)",
         "width: 24px",
         "height: 24px",
         "background: #fef9e7",

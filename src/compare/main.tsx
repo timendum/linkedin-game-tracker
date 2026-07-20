@@ -115,8 +115,8 @@ function ComparePage() {
 
   return (
     <div class="compare-page">
-      <div class="compare-page__header">
-        <h1 class="compare-page__title">
+      <div class="compare-page-header">
+        <h1 class="compare-page-title">
           You vs
         </h1>
         <FriendAutocomplete
@@ -124,7 +124,7 @@ function ComparePage() {
           value={friendName ?? ""}
           onSelect={handleFriendSelect}
         />
-        <span class="compare-page__subtitle">All games head-to-head</span>
+        <span class="compare-page-subtitle">All games head-to-head</span>
       </div>
 
       {loading && <div class="loading-indicator">Loading comparison data...</div>}
@@ -136,7 +136,7 @@ function ComparePage() {
 
           <OutcomeChart results={results} />
 
-          <div class="compare-page__games">
+          <div class="compare-page-games">
             {ALL_GAME_TYPES.map((gameType) => {
               const data = results.get(gameType);
               return <GameCard key={gameType} gameType={gameType} data={data ?? null} />;
@@ -258,7 +258,7 @@ function FriendAutocomplete(
       <input
         ref={inputRef}
         type="text"
-        class="friend-autocomplete__input"
+        class="friend-autocomplete-input"
         value={inputValue}
         onInput={handleInput}
         onFocus={handleFocus}
@@ -277,15 +277,15 @@ function FriendAutocomplete(
         <ul
           ref={listRef}
           id={listboxId}
-          class="friend-autocomplete__list"
+          class="friend-autocomplete-list"
           role="listbox"
         >
           {filtered.map((name, i) => (
             <li
               key={name}
               id={`friend-option-${i}`}
-              class={`friend-autocomplete__item${
-                i === highlightedIndex ? " friend-autocomplete__item--highlighted" : ""
+              class={`friend-autocomplete-item${
+                i === highlightedIndex ? " friend-autocomplete-item--highlighted" : ""
               }`}
               role="option"
               aria-selected={i === highlightedIndex}
@@ -307,44 +307,44 @@ function OverallSummary(
   { h2h, winRate, total }: { h2h: H2HRecord; winRate: number; total: number },
 ) {
   return (
-    <div class="compare-page__overall">
-      <div class="compare-page__overall-title">Overall Record</div>
-      <div class="compare-page__overall-stats">
-        <div class="compare-page__overall-record">
-          <span class="compare-page__overall-win">{h2h.wins}W</span>
-          <span class="compare-page__overall-separator">–</span>
-          <span class="compare-page__overall-loss">{h2h.losses}L</span>
+    <div class="compare-page-overall">
+      <div class="compare-page-overall-title">Overall Record</div>
+      <div class="compare-page-overall-stats">
+        <div class="compare-page-overall-record">
+          <span class="compare-page-overall-win">{h2h.wins}W</span>
+          <span class="compare-page-overall-separator">–</span>
+          <span class="compare-page-overall-loss">{h2h.losses}L</span>
           {h2h.ties > 0 && (
             <>
-              <span class="compare-page__overall-separator">–</span>
-              <span class="compare-page__overall-tie">{h2h.ties}T</span>
+              <span class="compare-page-overall-separator">–</span>
+              <span class="compare-page-overall-tie">{h2h.ties}T</span>
             </>
           )}
         </div>
 
         {total > 0 && (
-          <div class="compare-page__overall-bar">
+          <div class="compare-page-overall-bar">
             <div
-              class="compare-page__overall-bar-wins"
+              class="compare-page-overall-bar-wins"
               // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
               style={{ width: `${(h2h.wins / total) * 100}%` }}
             />
             {h2h.ties > 0 && (
               <div
-                class="compare-page__overall-bar-ties"
+                class="compare-page-overall-bar-ties"
                 // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
                 style={{ width: `${(h2h.ties / total) * 100}%` }}
               />
             )}
             <div
-              class="compare-page__overall-bar-losses"
+              class="compare-page-overall-bar-losses"
               // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
               style={{ width: `${(h2h.losses / total) * 100}%` }}
             />
           </div>
         )}
 
-        <span class="compare-page__overall-rate">
+        <span class="compare-page-overall-rate">
           {total > 0 ? `${winRate}% win rate over ${total} games` : "No common games yet"}
         </span>
       </div>
@@ -364,9 +364,9 @@ function OutcomeChart({ results }: { results: Map<GameType, ComparisonData> }) {
 
   if (dates.length === 0) {
     return (
-      <div class="compare-page__heatmap">
-        <div class="compare-page__heatmap-title">Daily Outcomes</div>
-        <div class="compare-page__heatmap-empty">No daily data yet</div>
+      <div class="compare-page-heatmap">
+        <div class="compare-page-heatmap-title">Daily Outcomes</div>
+        <div class="compare-page-heatmap-empty">No daily data yet</div>
       </div>
     );
   }
@@ -392,15 +392,15 @@ function OutcomeChart({ results }: { results: Map<GameType, ComparisonData> }) {
   }
 
   return (
-    <div class="compare-page__heatmap">
-      <div class="compare-page__heatmap-title">Daily Outcomes</div>
-      <div class="compare-page__heatmap-scroll">
+    <div class="compare-page-heatmap">
+      <div class="compare-page-heatmap-title">Daily Outcomes</div>
+      <div class="compare-page-heatmap-scroll">
         <table class="heatmap-grid" role="grid" aria-label="Daily outcomes heatmap">
           <thead>
             <tr>
-              <th class="heatmap-grid__corner"></th>
+              <th class="heatmap-grid-corner"></th>
               {dates.map((date, i) => (
-                <th key={date} class="heatmap-grid__date-header" title={date}>
+                <th key={date} class="heatmap-grid-date-header" title={date}>
                   {dateLabels[i]}
                 </th>
               ))}
@@ -411,12 +411,12 @@ function OutcomeChart({ results }: { results: Map<GameType, ComparisonData> }) {
               const dayMap = outcomeMap.get(gt)!;
               return (
                 <tr key={gt}>
-                  <td class="heatmap-grid__game-label">{GAME_DISPLAY_NAMES[gt]}</td>
+                  <td class="heatmap-grid-game-label">{GAME_DISPLAY_NAMES[gt]}</td>
                   {dates.map((date) => {
                     const outcome = dayMap.get(date) ?? null;
                     const cellClass = outcome
-                      ? `heatmap-grid__cell heatmap-grid__cell--${outcome}`
-                      : "heatmap-grid__cell heatmap-grid__cell--empty";
+                      ? `heatmap-grid-cell heatmap-grid-cell--${outcome}`
+                      : "heatmap-grid-cell heatmap-grid-cell--empty";
                     const label = outcome === "win"
                       ? "Win"
                       : outcome === "loss"
@@ -439,18 +439,18 @@ function OutcomeChart({ results }: { results: Map<GameType, ComparisonData> }) {
           </tbody>
         </table>
       </div>
-      <div class="heatmap-grid__legend">
-        <span class="heatmap-grid__legend-item">
-          <span class="heatmap-grid__legend-swatch heatmap-grid__legend-swatch--win" /> Win
+      <div class="heatmap-grid-legend">
+        <span class="heatmap-grid-legend-item">
+          <span class="heatmap-grid-legend-swatch heatmap-grid-legend-swatch--win" /> Win
         </span>
-        <span class="heatmap-grid__legend-item">
-          <span class="heatmap-grid__legend-swatch heatmap-grid__legend-swatch--loss" /> Loss
+        <span class="heatmap-grid-legend-item">
+          <span class="heatmap-grid-legend-swatch heatmap-grid-legend-swatch--loss" /> Loss
         </span>
-        <span class="heatmap-grid__legend-item">
-          <span class="heatmap-grid__legend-swatch heatmap-grid__legend-swatch--tie" /> Tie
+        <span class="heatmap-grid-legend-item">
+          <span class="heatmap-grid-legend-swatch heatmap-grid-legend-swatch--tie" /> Tie
         </span>
-        <span class="heatmap-grid__legend-item">
-          <span class="heatmap-grid__legend-swatch heatmap-grid__legend-swatch--empty" /> No data
+        <span class="heatmap-grid-legend-item">
+          <span class="heatmap-grid-legend-swatch heatmap-grid-legend-swatch--empty" /> No data
         </span>
       </div>
     </div>
@@ -466,10 +466,10 @@ function GameCard(
   if (!data || (data.userSessionCount === 0 && data.friendSessionCount === 0)) {
     return (
       <div class="game-card">
-        <div class="game-card__header">
-          <span class="game-card__name">{gameName}</span>
+        <div class="game-card-header">
+          <span class="game-card-name">{gameName}</span>
         </div>
-        <div class="game-card__empty">No data yet</div>
+        <div class="game-card-empty">No data yet</div>
       </div>
     );
   }
@@ -492,24 +492,24 @@ function GameCard(
 
   return (
     <div class="game-card">
-      <div class="game-card__header">
-        <span class="game-card__name">{gameName}</span>
+      <div class="game-card-header">
+        <span class="game-card-name">{gameName}</span>
         {total > 0 && (
-          <span class="game-card__record">
-            <span class="game-card__win">{h2h.wins}W</span>
-            <span class="game-card__separator">–</span>
-            <span class="game-card__loss">{h2h.losses}L</span>
+          <span class="game-card-record">
+            <span class="game-card-win">{h2h.wins}W</span>
+            <span class="game-card-separator">–</span>
+            <span class="game-card-loss">{h2h.losses}L</span>
             {h2h.ties > 0 && (
               <>
-                <span class="game-card__separator">–</span>
-                <span class="game-card__tie">{h2h.ties}T</span>
+                <span class="game-card-separator">–</span>
+                <span class="game-card-tie">{h2h.ties}T</span>
               </>
             )}
           </span>
         )}
       </div>
 
-      <table class="game-card__stats">
+      <table class="game-card-stats">
         <thead>
           <tr>
             <th></th>
@@ -545,21 +545,21 @@ function GameCard(
       </table>
 
       {total > 0 && (
-        <div class="game-card__bar">
+        <div class="game-card-bar">
           <div
-            class="game-card__bar-wins"
+            class="game-card-bar-wins"
             // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
             style={{ width: `${(h2h.wins / total) * 100}%` }}
           />
           {h2h.ties > 0 && (
             <div
-              class="game-card__bar-ties"
+              class="game-card-bar-ties"
               // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
               style={{ width: `${(h2h.ties / total) * 100}%` }}
             />
           )}
           <div
-            class="game-card__bar-losses"
+            class="game-card-bar-losses"
             // oxlint-disable-next-line react-perf/jsx-no-new-object-as-prop
             style={{ width: `${(h2h.losses / total) * 100}%` }}
           />

@@ -17,7 +17,7 @@ body {
 
 /* Empty state */
 .empty-state-message {
-  font-size: var(--font-size-base)px;
+  font-size: var(--font-size-base);
   color: var(--color-text-faint);
   line-height: 1.6;
 }
@@ -38,13 +38,13 @@ body {
   border-bottom: 1px solid var(--color-border);
 }
 
-.today-header__date {
+.today-header-date {
   font-size: var(--font-size-title);
   font-weight: var(--font-weight-heading);
   color: var(--color-text-primary);
 }
 
-.today-header__score {
+.today-header-score {
   font-size: var(--font-size-title);
   font-weight: 700;
   color: var(--color-brand);
@@ -60,9 +60,38 @@ body {
   gap: 6px;
 }
 
-/* Today Card – base */
+/* Today Card – base (override column from base.css) */
 .today-card {
+  flex-direction: row;
+  align-items: center;
   gap: 4px;
+}
+
+/* Today Card – clickable */
+.today-card--clickable {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.today-card--clickable:hover {
+  background: var(--color-button-hover);
+}
+
+/* Today Card – body (fills available space) */
+.today-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Today Card – chevron indicator */
+.today-card-chevron {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--color-text-faint);
+  line-height: 1;
 }
 
 /* Today Card – played state */
@@ -77,55 +106,53 @@ body {
 }
 
 /* Today Card – top row (name + score | link) */
-.today-card__top {
+.today-card-top {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.today-card__name {
-  font-size: var(--font-size-base)px;
+.today-card-name {
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-heading);
   color: var(--color-brand);
 }
 
-.today-card__name--link {
+.today-card-name--link {
   color: var(--color-brand);
   text-decoration: none;
   cursor: pointer;
 }
 
-.today-card__name--link:hover {
+.today-card-name--link:hover {
   text-decoration: underline;
 }
 
-.today-card__result {
+.today-card-result {
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text-muted);
 }
 
-.today-card__link {
-  margin-left: auto;
+.today-card-link {
   font-size: 12px;
-  color: var(--color-brand);
+  color: var(--color-text-muted);
   text-decoration: none;
   white-space: nowrap;
 }
 
-.today-card__link:hover {
+.today-card-link:hover {
   text-decoration: underline;
 }
 
 /* Today Card – pills row */
-.today-card__pills {
+.game-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
 /* Today Card – pill base */
-.today-card__pill {
+.game-pill {
   font-size: 11px;
   font-weight: 500;
   padding: 2px 8px;
@@ -160,7 +187,7 @@ body {
 }
 
 /* Today Card – Play CTA button */
-.today-card__cta {
+.today-card-cta {
   align-self: flex-start;
   margin-top: 2px;
   font-size: 12px;
@@ -181,38 +208,32 @@ body {
 
 /* Detail Card – section container */
 .detail-card {
-  gap: 8px;
-}
-
-.game-header-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  gap: 0px;
 }
 
 .game-header {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
 }
 
-.game-name {
+.game-header-name {
   font-size: var(--font-size-heading);
   font-weight: var(--font-weight-heading);
-  color: var(--color-brand);
+  color: var(--color-text-primary);
   margin: 0;
 }
 
-.game-header__linkedin-link {
+.game-header-link {
+  flex-shrink: 0;
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: var(--color-brand);
   text-decoration: none;
   white-space: nowrap;
 }
 
-.game-header__linkedin-link:hover {
+.game-header-link:hover {
   color: var(--color-brand);
   text-decoration: underline;
 }
@@ -225,11 +246,11 @@ body {
   gap: 12px;
 }
 
-.empty-state-row__link {
+.empty-state-link {
   flex-shrink: 0;
   font-size: 12px;
   font-weight: 500;
-  padding: 5px 12px;
+  padding: 4px 12px;
   color: var(--color-brand);
   border: 1px solid var(--color-brand);
   border-radius: 6px;
@@ -239,36 +260,34 @@ body {
   cursor: pointer;
 }
 
-.empty-state-row__link:hover {
+.empty-state-link:hover {
   background: var(--color-brand-bg);
 }
 
-/* Percentile Pills container (game detail view) */
-.today-stats__top {
+/* Today Stats */
+.today-stats {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 13px;
+  min-height: 24px;
 }
 
-.today-stats__link {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-brand);
-  text-decoration: none;
-  white-space: nowrap;
+.today-stats strong {
+  font-weight: var(--font-weight-heading);
+  color: var(--color-text-muted);
 }
 
-.today-stats__link:hover {
-  color: var(--color-brand);
-  text-decoration: underline;
+.today-stats-value {
+  font-weight: var(--font-weight-heading);
 }
 
-.today-stats__pills {
+.game-pills {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
+  min-height: 24px;
 }
 
 /* Personal Stats Row */
@@ -277,6 +296,7 @@ body {
   align-items: center;
   gap: 16px;
   font-size: 13px;
+  min-height: 24px;
   color: var(--color-text-secondary);
 }
 
@@ -294,7 +314,8 @@ body {
 .trend-sparkline {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
+  min-height: 24px;
 }
 
 .trend-label {
@@ -387,7 +408,7 @@ body {
   border-top: 1px solid var(--color-border);
 }
 
-.day-navigator__btn {
+.day-navigator-btn {
   font-size: 13px;
   padding: 4px 10px;
   border: 1px solid var(--color-button-border);
@@ -399,22 +420,22 @@ body {
   transition: background-color 0.15s, border-color 0.15s;
 }
 
-.day-navigator__btn:hover {
+.day-navigator-btn:hover {
   background: var(--color-button-hover);
   border-color: var(--color-brand);
 }
 
-.day-navigator__btn--disabled {
+.day-navigator-btn--disabled {
   opacity: 0.35;
   cursor: default;
   pointer-events: none;
 }
 
-.day-navigator__btn--reset {
+.day-navigator-btn--reset {
   font-size: 12px;
 }
 
-.day-navigator__label {
+.day-navigator-label {
   font-size: 13px;
   font-weight: 500;
   color: var(--color-text-secondary);
@@ -423,9 +444,9 @@ body {
 }
 
 /* Rank Chart Button (inside day-navigator) */
-.day-navigator__chart-btn {
+.day-navigator-chart-btn {
   margin-left: auto;
-  font-size: var(--font-size-base)px;
+  font-size: var(--font-size-base);
   padding: 4px 8px;
   line-height: 1;
 }
@@ -462,7 +483,7 @@ body {
 }
 
 .rank-chart-title {
-  font-size: var(--font-size-base)px;
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-heading);
   color: var(--color-text-primary);
 }
@@ -500,14 +521,14 @@ body {
   gap: 2px;
 }
 
-.comparison-header__title {
+.comparison-header-title {
   font-size: var(--font-size-heading);
   font-weight: var(--font-weight-heading);
-  color: var(--color-brand);
+  color: var(--color-text-primary);
   margin: 0;
 }
 
-.comparison-header__subtitle {
+.comparison-header-subtitle {
   font-size: 13px;
   font-weight: 500;
   color: var(--color-text-muted);
@@ -521,7 +542,7 @@ body {
   align-items: center;
 }
 
-.h2h-summary__record {
+.h2h-summary-record {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -529,24 +550,24 @@ body {
   font-weight: 700;
 }
 
-.h2h-summary__win {
+.h2h-summary-win {
   color: var(--pill-excellent);
 }
 
-.h2h-summary__loss {
+.h2h-summary-loss {
   color: var(--pill-below);
 }
 
-.h2h-summary__tie {
+.h2h-summary-tie {
   color: var(--color-text-muted);
 }
 
-.h2h-summary__separator {
+.h2h-summary-separator {
   color: var(--color-text-faint);
   font-weight: 400;
 }
 
-.h2h-summary__bar {
+.h2h-summary-bar {
   display: flex;
   width: 100%;
   height: 8px;
@@ -555,34 +576,34 @@ body {
   background: var(--color-border);
 }
 
-.h2h-summary__bar-wins {
+.h2h-summary-bar-wins {
   background: var(--pill-excellent);
   height: 100%;
 }
 
-.h2h-summary__bar-ties {
+.h2h-summary-bar-ties {
   background: var(--color-text-faint);
   height: 100%;
 }
 
-.h2h-summary__bar-losses {
+.h2h-summary-bar-losses {
   background: var(--pill-below);
   height: 100%;
 }
 
-.h2h-summary__rate {
+.h2h-summary-rate {
   font-size: 12px;
   color: var(--color-text-muted);
 }
 
 /* Stats Comparison Table */
-.stats-comparison__table {
+.stats-comparison-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
 }
 
-.stats-comparison__table th {
+.stats-comparison-table th {
   text-align: center;
   font-weight: var(--font-weight-heading);
   color: var(--color-text-muted);
@@ -590,28 +611,28 @@ body {
   border-bottom: 1px solid var(--color-border);
 }
 
-.stats-comparison__table th:first-child {
+.stats-comparison-table th:first-child {
   text-align: left;
 }
 
-.stats-comparison__table td {
+.stats-comparison-table td {
   text-align: center;
   padding: 6px 8px;
   color: var(--color-text-secondary);
 }
 
-.stats-comparison__label {
+.stats-comparison-label {
   text-align: left !important;
   font-weight: 500;
   color: var(--color-text-muted);
 }
 
-.stats-comparison__better {
+.stats-comparison-better {
   font-weight: 700;
   color: var(--pill-excellent);
 }
 
-.stats-comparison__worse {
+.stats-comparison-worse {
   color: var(--color-text-faint);
 }
 
@@ -622,73 +643,73 @@ body {
   gap: 8px;
 }
 
-.daily-timeline__title {
+.daily-timeline-title {
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text-faint);
 }
 
-.daily-timeline__grid {
+.daily-timeline-grid {
   display: flex;
   gap: 4px;
 }
 
-.daily-timeline__cell {
+.daily-timeline-cell {
   width: 18px;
   height: 18px;
   border-radius: 3px;
   cursor: default;
 }
 
-.daily-timeline__cell--win {
+.daily-timeline-cell--win {
   background: var(--pill-excellent);
 }
 
-.daily-timeline__cell--loss {
+.daily-timeline-cell--loss {
   background: var(--pill-below);
 }
 
-.daily-timeline__cell--tie {
+.daily-timeline-cell--tie {
   background: var(--color-text-faint);
 }
 
-.daily-timeline__cell--incomplete {
+.daily-timeline-cell--incomplete {
   background: var(--color-border);
 }
 
-.daily-timeline__legend {
+.daily-timeline-legend {
   display: flex;
   gap: 10px;
   font-size: 11px;
   color: var(--color-text-muted);
 }
 
-.daily-timeline__legend-item {
+.daily-timeline-legend-item {
   display: flex;
   align-items: center;
   gap: 3px;
 }
 
-.daily-timeline__dot {
+.daily-timeline-dot {
   width: 8px;
   height: 8px;
   border-radius: 2px;
   display: inline-block;
 }
 
-.daily-timeline__dot--win {
+.daily-timeline-dot--win {
   background: var(--pill-excellent);
 }
 
-.daily-timeline__dot--loss {
+.daily-timeline-dot--loss {
   background: var(--pill-below);
 }
 
-.daily-timeline__dot--tie {
+.daily-timeline-dot--tie {
   background: var(--color-text-faint);
 }
 
-.daily-timeline__dot--incomplete {
+.daily-timeline-dot--incomplete {
   background: var(--color-border);
 }
 
@@ -714,7 +735,7 @@ body {
 /* Full Compare button in comparison view */
 .full-compare-btn {
   flex-shrink: 0;
-  align-self: center;
+  margin-left: auto;
   font-size: 12px;
   font-weight: 500;
   padding: 5px 12px;
@@ -736,14 +757,14 @@ body {
   border-top: 1px solid var(--color-border);
 }
 
-.popup-footer__link {
+.popup-footer-link {
   font-size: 13px;
   color: var(--color-text-muted);
   text-decoration: none;
   cursor: pointer;
 }
 
-.popup-footer__link:hover {
+.popup-footer-link:hover {
   color: var(--color-brand);
   text-decoration: underline;
 }
