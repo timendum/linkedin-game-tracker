@@ -2,14 +2,15 @@
 
 ## Project Overview
 
-Chrome extension (Manifest V3) that tracks LinkedIn game performance (Pinpoint, Queens, Crossclimb,
-Tango, Wend, Patches, Zip, Mini-Sudoku). Built with Deno + esbuild, outputs to `dist/`.
+Chrome/Firefox extension (Manifest V3) that tracks LinkedIn game performance (Pinpoint, Queens,
+Crossclimb, Tango, Wend, Patches, Zip, Mini-Sudoku). Built with Deno + esbuild, outputs to `dist/`.
 
 ## Environment
 
 - **Runtime:** Deno (located at `C:\Users\bordime001\.deno\bin\deno.exe`)
 - **Shell:** PowerShell on Windows
-- **Build:** `deno task build` — bundles TypeScript via esbuild into `dist/`
+- **Build:** `deno task build` — bundles TypeScript via esbuild into `dist/` (Chrome target)
+- **Build (Firefox):** `deno task build:firefox` — bundles for Firefox
 - **Type-check:** `deno task check`
 - **Test:** `deno task test`
 - **Lint:** `just lint` — runs both `deno lint` and oxlint (via `deno run xlint`)
@@ -20,26 +21,31 @@ Tango, Wend, Patches, Zip, Mini-Sudoku). Built with Deno + esbuild, outputs to `
 
 ```
 src/
-  background/   – Service worker, IndexedDB data store (via idb), messaging
+  background/   – Service worker, IndexedDB data store (via idb), message controller
   chart/        – Standalone chart page (Chart.js visualizations)
+  compare/      – Standalone 1v1 comparison page (all games head-to-head)
   content/      – Content scripts injected on LinkedIn game pages
   lib/          – Shared types, validators, formatters, browser API wrapper
-  popup/        – Extension popup UI (Preact + JSX), views: today-view, game-detail-view
+  popup/        – Extension popup UI (Preact + JSX)
+    views/      – today-view, game-detail-view, comparison-view
+  settings/     – Settings page (CSV export/import)
   shared/       – Shared CSS
-manifest.json   – Extension manifest (copied to dist at build time)
-build.ts        – Deno + esbuild build script
+manifest.json           – Chrome manifest (copied to dist at build time)
+manifest.firefox.json   – Firefox-specific overrides (merged at build time)
+build.ts                – Deno + esbuild build script
 ```
 
 ## Key Conventions
 
 - TypeScript throughout; no `node_modules` — use Deno imports and `npm:` specifiers in `deno.json`.
 - UI uses **Preact** with JSX (`jsxImportSource: "preact"` in compiler options).
-- Persistence uses **IndexedDB** via the `idb` package — not `chrome.storage`.
+- Persistence uses **IndexedDB** via the `idb` package.
 - Tests use Deno's built-in test runner (`_test.ts` suffix). Property-based tests use `fast-check`.
 - Browser APIs (chrome.runtime) are wrapped in `src/lib/browser.ts` for testability.
 - Content scripts scrape completed game results from LinkedIn DOM — they don't interact with the
   page beyond reading.
 - The popup communicates with the background service worker via `chrome.runtime.sendMessage`.
+- Standalone pages (chart, compare, settings) also use messaging to fetch data from the background.
 
 ## Validation & Testing
 

@@ -13,7 +13,6 @@
     "chart.js": "npm:chart.js@4.5.1",
     "oxlint": "npm:oxlint@^1.74.0",
     "esbuild": "npm:esbuild@0.28.1",
-    "fast-check": "npm:fast-check@4.9.0",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.1",
     "@std/fs/copy": "https://deno.land/std@0.224.0/fs/copy.ts",
     "@std/fs/ensure-dir": "https://deno.land/std@0.224.0/fs/ensure_dir.ts",
