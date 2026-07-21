@@ -112,94 +112,66 @@ class ResultScraper {
     return docs;
   }
 
+  /** Combined selectors covering both old and new LinkedIn DOM class names */
+  private static readonly ROW_SELECTOR = [
+    ".pr-connections-leaderboard-player-container", // old
+    ".pr-connections-leaderboard-player__container", // new
+  ].join(", ");
+  private static readonly NAME_SELECTOR = [
+    ".pr-connections-leaderboard-player-name", // old
+    ".pr-connections-leaderboard-player__name", // new
+  ].join(", ");
+  private static readonly SCORE_SELECTOR = [
+    ".pr-connections-leaderboard-player-score", // old
+    ".pr-connections-leaderboard-player__score", // new
+  ].join(", ");
+
   /**
-   * Extracts visible friend results from the leaderboard DOM.
-   * Skips the current user's row (name === "You") — that's handled by extractUserResult.
-   * Searches both the main document and any same-origin iframes,
-   * since LinkedIn may render the leaderboard in either location
-   * depending on whether navigation was a full page load or SPA transition.
+   * Extracts all leaderboard results from the DOM — both the current user's
+   * "You" row and friends' rows — in a single pass.
+   *
+   * Searches both the main document and any same-origin iframes, since LinkedIn
+   * may render the leaderboard in either location depending on whether navigation
+   * was a full page load or SPA transition.
+   *
+   * Returns:
+   * - `userSession`: The current user's result (playerName="self"), or null if absent/incomplete.
+   * - `friendSessions`: Array of friend results (skipping incomplete entries).
    */
-  extractFriendsResults(): GameSession[] {
-    const results: GameSession[] = [];
+  extractLeaderboardResults(): { userSession: GameSession | null; friendSessions: GameSession[] } {
     const docs = this.getSearchDocuments();
     const date = getLeaderboardDate(docs);
+    const friendSessions: GameSession[] = [];
+    let userSession: GameSession | null = null;
 
     for (const doc of docs) {
-      const rows = doc.querySelectorAll(
-        ".pr-connections-leaderboard-player-container",
-      );
+      const rows = doc.querySelectorAll(ResultScraper.ROW_SELECTOR);
 
       for (const row of rows) {
-        const nameEl = row.querySelector(
-          ".pr-connections-leaderboard-player-name",
-        );
-        const scoreEl = row.querySelector(
-          ".pr-connections-leaderboard-player-score",
-        );
+        const nameEl = row.querySelector(ResultScraper.NAME_SELECTOR);
+        const scoreEl = row.querySelector(ResultScraper.SCORE_SELECTOR);
 
         if (!nameEl || !scoreEl) continue;
 
         const displayName = nameEl.textContent?.trim() ?? "";
         const scoreText = scoreEl.textContent?.trim() ?? "";
 
-        // Skip the current user's entry (handled separately)
-        if (displayName === "You" || displayName === "") continue;
+        if (displayName === "") continue;
 
-        const result = this.buildFriendSession(displayName, scoreText, date);
-        if (result) {
-          results.push(result);
+        if (displayName === "You") {
+          // Only take the first "You" row found
+          if (userSession !== null) continue;
+          userSession = this.buildUserSession(scoreText, date);
+        } else {
+          const result = this.buildFriendSession(displayName, scoreText, date);
+          if (result) {
+            friendSessions.push(result);
+          }
         }
       }
     }
 
-    return results;
-  }
-
-  /**
-   * Extracts the current user's own result from the "You" row in the leaderboard.
-   * Returns a GameSession with playerName="self" if found, or null if not present/incomplete.
-   * This serves as a second source for the user's result, complementing game-scraper.
-   */
-  extractUserResult(): GameSession | null {
-    const docs = this.getSearchDocuments();
-    const date = getLeaderboardDate(docs);
-
-    for (const doc of docs) {
-      const rows = doc.querySelectorAll(
-        ".pr-connections-leaderboard-player-container",
-      );
-
-      for (const row of rows) {
-        const nameEl = row.querySelector(
-          ".pr-connections-leaderboard-player-name",
-        );
-        const scoreEl = row.querySelector(
-          ".pr-connections-leaderboard-player-score",
-        );
-
-        if (!nameEl || !scoreEl) continue;
-
-        const displayName = nameEl.textContent?.trim() ?? "";
-        if (displayName !== "You") continue;
-
-        const scoreText = scoreEl.textContent?.trim() ?? "";
-
-        // Skip incomplete results
-        if (
-          !scoreText ||
-          scoreText === "–" ||
-          scoreText === "-" ||
-          scoreText === "—" ||
-          scoreText === "-:--"
-        ) {
-          return null;
-        }
-
-        return this.buildUserSession(scoreText, date);
-      }
-    }
-
-    return null;
+    return { userSession, friendSessions };
   }
 
   /**
@@ -354,18 +326,15 @@ class ResultScraper {
 
     let totalRows = 0;
     for (const doc of docs) {
-      const rows = doc.querySelectorAll(
-        ".pr-connections-leaderboard-player-container",
-      );
+      const rows = doc.querySelectorAll(ResultScraper.ROW_SELECTOR);
       totalRows += rows.length;
     }
 
     // Need at least one row to proceed (even if it's just "You")
     if (totalRows === 0) return;
 
-    // --- Gather user result and friends ---
-    const userSession = this.extractUserResult();
-    const friendSessions = this.extractFriendsResults();
+    // --- Gather user result and friends in a single pass ---
+    const { userSession, friendSessions } = this.extractLeaderboardResults();
 
     // Only send if we have something to report
     if (userSession || friendSessions.length > 0) {
