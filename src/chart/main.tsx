@@ -7,11 +7,10 @@
 
 import { render } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import type { GameType, RankHistoryData } from "../lib/types.ts";
-import { GAME_URL_PATHS, MessageType } from "../lib/types.ts";
+import type { GameType, RankHistoryData, TodaySummaryData } from "../lib/types.ts";
+import { ALL_GAME_TYPES, MessageType } from "../lib/types.ts";
 import { browserAPI } from "../lib/browser.ts";
-import { GAME_DISPLAY_NAMES } from "../lib/formatters.ts";
-import { formatTime } from "../lib/formatters.ts";
+import { formatTime, GAME_DISPLAY_NAMES, sortGameTypes } from "../lib/formatters.ts";
 import {
   CategoryScale,
   Chart,
@@ -35,30 +34,50 @@ Chart.register(
   Tooltip,
 );
 
-/** All game types as an ordered array for the dropdown */
-const ALL_GAME_TYPES: GameType[] = Object.values(GAME_URL_PATHS);
-
-/** Pick a random game type */
-function randomGameType(): GameType {
-  return ALL_GAME_TYPES[Math.floor(Math.random() * ALL_GAME_TYPES.length)];
-}
-
-/** Determine the initial game from the URL or fall back to random */
-function getInitialGameType(): GameType {
+/** Get the explicit game type from URL params, if valid */
+function getGameTypeFromURL(): GameType | null {
   const params = new URLSearchParams(globalThis.location.search);
   const param = params.get("gameType") ?? "";
   if (ALL_GAME_TYPES.includes(param as GameType)) return param as GameType;
-  return randomGameType();
+  return null;
 }
 
 function ChartPage() {
-  const [selectedGame, setSelectedGame] = useState<GameType>(getInitialGameType);
+  const [selectedGame, setSelectedGame] = useState<GameType | null>(getGameTypeFromURL);
+  const [sortedGameTypes, setSortedGameTypes] = useState<GameType[]>(ALL_GAME_TYPES);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch today summary once to determine dropdown order and default game
   useEffect(() => {
+    browserAPI.runtime
+      .sendMessage({ type: MessageType.GET_TODAY_SUMMARY })
+      .then((response) => {
+        const data = response as TodaySummaryData;
+        if (data?.games?.length) {
+          const sorted = sortGameTypes(data.games);
+          setSortedGameTypes(sorted);
+          // If no explicit URL param, pick the most-played game
+          setSelectedGame((current) => current ?? sorted[0]);
+        } else {
+          // No data — fall back to random
+          setSelectedGame((current) =>
+            current ?? ALL_GAME_TYPES[Math.floor(Math.random() * ALL_GAME_TYPES.length)]
+          );
+        }
+        return undefined;
+      })
+      .catch(() => {
+        setSelectedGame((current) =>
+          current ?? ALL_GAME_TYPES[Math.floor(Math.random() * ALL_GAME_TYPES.length)]
+        );
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!selectedGame) return;
     setLoading(true);
     setError(null);
 
@@ -169,7 +188,7 @@ function ChartPage() {
   const changeGame = useCallback(
     (e: preact.TargetedEvent<HTMLSelectElement>) =>
       setSelectedGame(e.currentTarget.value as GameType),
-    [setSelectedGame],
+    [],
   );
 
   return (
@@ -178,11 +197,11 @@ function ChartPage() {
         <h1 class="chart-page-title">Rank over time</h1>
         <select
           class="chart-page-game-select"
-          value={selectedGame}
+          value={selectedGame ?? ""}
           onChange={changeGame}
           aria-label="Select game"
         >
-          {ALL_GAME_TYPES.map((gt) => <option key={gt} value={gt}>{GAME_DISPLAY_NAMES[gt]}
+          {sortedGameTypes.map((gt) => <option key={gt} value={gt}>{GAME_DISPLAY_NAMES[gt]}
           </option>)}
         </select>
       </div>

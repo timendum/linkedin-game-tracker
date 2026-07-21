@@ -12,16 +12,15 @@ import {
   formatTime,
   GAME_DISPLAY_NAMES,
   GAME_URLS,
+  sortGameTypes,
 } from "../../lib/formatters.ts";
 import { browserAPI } from "../../lib/browser.ts";
 
 /** Sort games by number of user sessions (descending), then alphabetically */
 function sortedGames(games: GameDaySummary[]): GameDaySummary[] {
-  return [...games].sort((a, b) => {
-    const countDiff = b.priorSessionCount - a.priorSessionCount;
-    if (countDiff !== 0) return countDiff;
-    return a.gameType.localeCompare(b.gameType);
-  });
+  const order = sortGameTypes(games);
+  const byType = new Map(games.map((g) => [g.gameType, g]));
+  return order.map((gt) => byType.get(gt)!);
 }
 
 interface TodaySummaryProps {

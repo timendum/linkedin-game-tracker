@@ -3,7 +3,7 @@
  * Provides locale-appropriate formatting for times, averages, dates, and counts.
  */
 
-import type { GameType } from "./types.ts";
+import type { GameDaySummary, GameType } from "./types.ts";
 export { GAME_URLS } from "./types.ts";
 
 /**
@@ -88,4 +88,18 @@ export function buildPercentilePills(
   }
 
   return pills;
+}
+
+/**
+ * Sorts game summaries by number of user sessions (descending), then alphabetically.
+ * Returns the ordered GameType array. Matches the today-view card order.
+ */
+export function sortGameTypes(games: GameDaySummary[]): GameType[] {
+  return [...games]
+    .sort((a, b) => {
+      const countDiff = b.priorSessionCount - a.priorSessionCount;
+      if (countDiff !== 0) return countDiff;
+      return a.gameType.localeCompare(b.gameType);
+    })
+    .map((g) => g.gameType);
 }

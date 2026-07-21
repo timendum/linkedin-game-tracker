@@ -12,12 +12,9 @@
 import { render } from "preact";
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { ComparisonData, GameType, H2HRecord } from "../lib/types.ts";
-import { GAME_URL_PATHS, MessageType } from "../lib/types.ts";
+import { ALL_GAME_TYPES, MessageType } from "../lib/types.ts";
 import { browserAPI } from "../lib/browser.ts";
 import { formatTime, GAME_DISPLAY_NAMES } from "../lib/formatters.ts";
-
-/** All game types as an ordered array */
-const ALL_GAME_TYPES: GameType[] = Object.values(GAME_URL_PATHS);
 
 /** Get the friend name from URL params */
 function getFriendNameFromURL(): string | null {

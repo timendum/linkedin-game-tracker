@@ -36,6 +36,9 @@ export const GAME_URL_PATHS: Record<string, GameType> = {
   "/games/mini-sudoku": "sudoku",
 };
 
+/** All game types in canonical display order (matches GAME_URL_PATHS declaration). */
+export const ALL_GAME_TYPES: GameType[] = Object.values(GAME_URL_PATHS);
+
 /**
  * Full LinkedIn game URLs keyed by game type.
  * Derived from GAME_URL_PATHS — do not maintain separately.
