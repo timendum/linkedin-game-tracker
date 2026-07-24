@@ -1,5 +1,5 @@
 import * as esbuild from "esbuild";
-import { denoPlugins } from "@luca/esbuild-deno-loader";
+import { denoPlugin } from "@deno/esbuild-plugin";
 import { copy } from "@std/fs/copy";
 import { ensureDir } from "@std/fs/ensure-dir";
 import { expandGlob } from "@std/fs/expand-glob";
@@ -159,7 +159,7 @@ async function build() {
     sourcemap: false,
     jsx: "automatic",
     jsxImportSource: "preact",
-    plugins: [...denoPlugins({ configPath: resolve("deno.json") })],
+    plugins: [denoPlugin()],
   });
 
   // Copy static assets to dist
