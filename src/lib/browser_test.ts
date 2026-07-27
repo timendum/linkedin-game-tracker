@@ -27,15 +27,6 @@ function setupChromeMock() {
         },
       },
     },
-    notifications: {
-      create(
-        _id: string,
-        _options: Record<string, unknown>,
-        callback: (id: string) => void,
-      ) {
-        callback("test-notification-id");
-      },
-    },
   };
 }
 
@@ -55,7 +46,6 @@ Deno.test("browser module exports BrowserAPI interfaces and singleton", async ()
     const module = await import("./browser.ts");
     assertExists(module.browserAPI);
     assertExists(module.browserAPI.runtime);
-    assertExists(module.browserAPI.notifications);
   } finally {
     cleanupGlobals();
   }
@@ -74,21 +64,9 @@ Deno.test("Chrome mock: runtime interface has expected shape", async () => {
   }
 });
 
-Deno.test("Chrome mock: notifications interface has expected shape", async () => {
-  setupChromeMock();
-  try {
-    const { browserAPI } = await import("./browser.ts");
-    assertExists(browserAPI.notifications);
-    assertEquals(typeof browserAPI.notifications.create, "function");
-  } finally {
-    cleanupGlobals();
-  }
-});
-
 Deno.test("BrowserAPI type is correctly exported", async () => {
   const module = await import("./browser.ts");
   // Verify the API matches the BrowserAPI interface shape
   const api: BrowserAPI = module.browserAPI;
   assertExists(api.runtime);
-  assertExists(api.notifications);
 });

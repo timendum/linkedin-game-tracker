@@ -78,8 +78,12 @@ class ResultScraper {
   private static readonly DEBOUNCE_MS = 800;
   /** Whether the "yesterday" reminder banner is currently shown */
   private yesterdayReminderShown = false;
+  /** Whether the "full leaderboard" reminder arrow is currently shown */
+  private fullLeaderboardReminderShown = false;
   /** Whether we've already checked the background for staleness this session */
   private yesterdayReminderChecked = false;
+  /** Whether we've already checked staleness for the full leaderboard reminder */
+  private fullLeaderboardReminderChecked = false;
   /** Threshold: show reminder when last scrape is older than this duration */
   private static readonly STALE_THRESHOLD = Temporal.Duration.from({ hours: 18 });
 
@@ -324,6 +328,9 @@ class ResultScraper {
     // Show or hide the "yesterday" reminder based on active tab and time of day
     this.maybeShowYesterdayReminder(activeTab);
 
+    // Show or hide the "full leaderboard" reminder on narrow result pages
+    this.maybeShowFullLeaderboardReminder();
+
     let totalRows = 0;
     for (const doc of docs) {
       const rows = doc.querySelectorAll(ResultScraper.ROW_SELECTOR);
@@ -547,14 +554,9 @@ class ResultScraper {
         "display: inline-flex",
         "align-items: center",
         "justify-content: center",
-        "margin-left: 6px",
-        "font-size: var(--font-size-base)",
-        "width: 24px",
-        "height: 24px",
-        "background: #fef9e7",
-        "border: 1px solid #e8deb3",
-        "border-radius: 50%",
-        "box-shadow: 0 1px 4px rgba(0,0,0,0.10)",
+        "margin-left: 4px",
+        "font-size: 18px",
+        "line-height: 1",
         "pointer-events: auto",
         "cursor: default",
         "animation: fadeIn 0.3s ease-in",
@@ -575,6 +577,111 @@ class ResultScraper {
     }
   }
 
+  /**
+   * Shows a reminder arrow next to the "See full leaderboard" button when:
+   * - The leaderboard is partial (narrow result page with "See full leaderboard" visible)
+   * - The last scraped data for this game (excluding today) is stale
+   * - The reminder isn't already displayed
+   *
+   * Uses the same staleness logic as the yesterday reminder (excludeDate: todayDate).
+   * Only checks once per scraper session to avoid repeated background queries.
+   */
+  private maybeShowFullLeaderboardReminder(): void {
+    // Only show on partial (narrow) leaderboard pages
+    if (!this.isLeaderboardPartial()) {
+      if (this.fullLeaderboardReminderShown) {
+        this.removeFullLeaderboardReminder();
+        this.fullLeaderboardReminderShown = false;
+      }
+      return;
+    }
+
+    // Only query the background once per scraper session
+    if (this.fullLeaderboardReminderChecked || this.fullLeaderboardReminderShown) return;
+    this.fullLeaderboardReminderChecked = true;
+
+    this.checkFullLeaderboardStaleness();
+  }
+
+  /**
+   * Queries the background for the latest scrape time and shows the full leaderboard
+   * reminder if the data is older than the staleness threshold.
+   */
+  private async checkFullLeaderboardStaleness(): Promise<void> {
+    try {
+      const todayDate = Temporal.Now.plainDateISO().toString();
+      const latestScrapeTime = await browserAPI.runtime.sendMessage({
+        type: MessageType.GET_LATEST_SCRAPE_TIME,
+        gameType: this.gameType,
+        excludeDate: todayDate,
+      }) as string | null;
+
+      let isStale: boolean;
+      if (latestScrapeTime === null) {
+        isStale = true;
+      } else {
+        const elapsed = Temporal.Now.instant().since(Temporal.Instant.from(latestScrapeTime));
+        isStale = Temporal.Duration.compare(elapsed, ResultScraper.STALE_THRESHOLD) >= 0;
+      }
+
+      if (isStale) {
+        this.injectFullLeaderboardReminder();
+        this.fullLeaderboardReminderShown = true;
+      }
+    } catch {
+      // If the message fails, don't show the reminder — not critical
+    }
+  }
+
+  /** Injects a reminder arrow next to the "See full leaderboard" button */
+  private injectFullLeaderboardReminder(): void {
+    for (const doc of this.getSearchDocuments()) {
+      // Avoid duplicates
+      if (doc.querySelector("[data-game-tracker-full-leaderboard-reminder]")) continue;
+
+      // Find the "See full leaderboard" button
+      const buttons = doc.querySelectorAll("button");
+      let fullLeaderboardBtn: Element | null = null;
+      for (const btn of buttons) {
+        const text = btn.textContent?.trim().toLowerCase() ?? "";
+        if (text.includes("see full leaderboard")) {
+          fullLeaderboardBtn = btn;
+          break;
+        }
+      }
+      if (!fullLeaderboardBtn) continue;
+
+      const bubble = doc.createElement("span");
+      bubble.setAttribute("data-game-tracker-full-leaderboard-reminder", "true");
+      bubble.textContent = "\u{1F449}";
+      bubble.title = "Click to see the full leaderboard and capture all friends\u2019 results!";
+      bubble.style.cssText = [
+        "display: inline-flex",
+        "align-items: center",
+        "justify-content: center",
+        "margin-right: 4px",
+        "font-size: 18px",
+        "line-height: 1",
+        "pointer-events: auto",
+        "cursor: default",
+        "animation: fadeIn 0.3s ease-in",
+        "vertical-align: middle",
+        "flex-shrink: 0",
+      ].join(";");
+
+      // Insert the bubble right before the "See full leaderboard" button
+      fullLeaderboardBtn.before(bubble);
+    }
+  }
+
+  /** Removes the full leaderboard reminder from all documents */
+  private removeFullLeaderboardReminder(): void {
+    for (const doc of this.getSearchDocuments()) {
+      const reminder = doc.querySelector("[data-game-tracker-full-leaderboard-reminder]");
+      reminder?.remove();
+    }
+  }
+
   /** Disconnects the MutationObserver and stops monitoring */
   destroy(): void {
     if (this.observer) {
@@ -590,6 +697,7 @@ class ResultScraper {
       this.debounceTimer = null;
     }
     this.removeYesterdayReminder();
+    this.removeFullLeaderboardReminder();
   }
 }
 
@@ -618,9 +726,93 @@ class ResultNavigationMonitor extends NavigationMonitorBase {
       this.currentScraper = null;
     }
   }
+
+  /** Manually triggers checkAndExtract on the active scraper (for debugging) */
+  debugCheckAndExtract():
+    | { userSession: GameSession | null; friendSessions: GameSession[] }
+    | null {
+    if (!this.currentScraper) return null;
+    return this.currentScraper.extractLeaderboardResults();
+  }
+}
+
+// --- Debug Toast ---
+
+/**
+ * Shows a temporary floating toast message on the page for developer feedback.
+ * Auto-dismisses after the specified duration.
+ */
+function showDebugToast(message: string, durationMs = 4000): void {
+  const existing = document.getElementById("game-tracker-debug-toast");
+  if (existing) existing.remove();
+
+  const toast = document.createElement("div");
+  toast.id = "game-tracker-debug-toast";
+  toast.textContent = message;
+  toast.style.cssText = [
+    "position: fixed",
+    "bottom: 24px",
+    "right: 24px",
+    "z-index: 999999",
+    "background: #1a1a2e",
+    "color: #e0e0e0",
+    "font-family: monospace",
+    "font-size: 13px",
+    "padding: 12px 18px",
+    "border-radius: 8px",
+    "box-shadow: 0 4px 16px rgba(0,0,0,0.3)",
+    "max-width: 420px",
+    "white-space: pre-wrap",
+    "word-break: break-word",
+    "opacity: 0",
+    "transition: opacity 0.2s ease-in",
+  ].join(";");
+
+  document.body.appendChild(toast);
+  // Trigger fade-in
+  requestAnimationFrame(() => {
+    toast.style.opacity = "1";
+  });
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 300);
+  }, durationMs);
 }
 
 // --- Initialization ---
 
 const resultMonitor = new ResultNavigationMonitor();
 resultMonitor.start();
+
+// --- Debug Keyboard Shortcut (Ctrl+Shift+E) ---
+
+/**
+ * Registers a keyboard shortcut for developer debugging.
+ * Press Ctrl+Shift+Q to manually invoke checkAndExtract and see
+ * extracted results in a toast + console.
+ */
+document.addEventListener("keydown", (e: KeyboardEvent) => {
+  if (e.ctrlKey && e.shiftKey && e.key === "Q") {
+    e.preventDefault();
+
+    const results = resultMonitor.debugCheckAndExtract();
+
+    if (results === null) {
+      const msg = "[GameTracker] No active scraper — not on a game results page.";
+      console.warn(msg);
+      showDebugToast(msg);
+      return;
+    }
+
+    const { userSession, friendSessions } = results;
+    const userStatus = userSession
+      ? `User: ${userSession.gameType} (${userSession.date})`
+      : "User: not found";
+    const friendCount = `Friends: ${friendSessions.length} result(s)`;
+
+    const summary = `[GameTracker Debug]\n${userStatus}\n${friendCount}`;
+    console.log(summary, { userSession, friendSessions });
+    showDebugToast(summary);
+  }
+});

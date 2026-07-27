@@ -22,17 +22,12 @@ export interface BrowserRuntime {
   };
 }
 
-export interface BrowserNotifications {
-  create(id: string, options: Record<string, unknown>): Promise<string>;
-}
-
 export interface BrowserTabs {
   create(options: { url: string }): Promise<unknown>;
 }
 
 export interface BrowserAPI {
   runtime: BrowserRuntime;
-  notifications: BrowserNotifications;
   tabs: BrowserTabs;
 }
 
@@ -117,27 +112,6 @@ function createChromeRuntime(): BrowserRuntime {
   };
 }
 
-function createChromeNotifications(): BrowserNotifications {
-  const api = getRawAPI();
-  const notifications = api?.notifications;
-
-  return {
-    create(id: string, options: Record<string, unknown>): Promise<string> {
-      if (isFirefox()) {
-        return notifications.create(id, options);
-      }
-      if (notifications?.create) {
-        return promisify<string>(
-          notifications.create.bind(notifications),
-          id,
-          options,
-        );
-      }
-      return Promise.reject(new Error("notifications.create not available"));
-    },
-  };
-}
-
 function createChromeTabs(): BrowserTabs {
   const api = getRawAPI();
   const tabs = api?.tabs;
@@ -158,6 +132,5 @@ function createChromeTabs(): BrowserTabs {
 /** Browser API for use throughout the codebase */
 export const browserAPI: BrowserAPI = {
   runtime: createChromeRuntime(),
-  notifications: createChromeNotifications(),
   tabs: createChromeTabs(),
 };

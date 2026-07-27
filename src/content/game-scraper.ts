@@ -273,6 +273,11 @@ class GameScraper {
     this.gameType = gameType;
   }
 
+  /** Returns the game type this scraper is targeting */
+  getGameType(): GameType {
+    return this.gameType;
+  }
+
   /**
    * Starts observing the DOM for the completion state.
    * Uses a MutationObserver on the game container element.
@@ -536,9 +541,100 @@ class GameNavigationMonitor extends NavigationMonitorBase {
       this.currentScraper = null;
     }
   }
+
+  /** Manually triggers extraction on the active scraper (for debugging) */
+  debugExtractResult(): {
+    gameType: GameType;
+    metric: number | null;
+    date: string | null;
+    completed: boolean | null;
+  } | null {
+    if (!this.currentScraper) return null;
+    const result = this.currentScraper.extractResult();
+    return { gameType: this.currentScraper.getGameType(), ...result };
+  }
 }
 
 // --- Initialization ---
 
 const monitor = new GameNavigationMonitor();
 monitor.start();
+
+// --- Debug Toast ---
+
+/**
+ * Shows a temporary floating toast message on the page for developer feedback.
+ * Auto-dismisses after the specified duration.
+ */
+function showDebugToast(message: string, durationMs = 4000): void {
+  const existing = document.getElementById("game-tracker-debug-toast");
+  if (existing) existing.remove();
+
+  const toast = document.createElement("div");
+  toast.id = "game-tracker-debug-toast";
+  toast.textContent = message;
+  toast.style.cssText = [
+    "position: fixed",
+    "bottom: 24px",
+    "right: 24px",
+    "z-index: 999999",
+    "background: #1a1a2e",
+    "color: #e0e0e0",
+    "font-family: monospace",
+    "font-size: 13px",
+    "padding: 12px 18px",
+    "border-radius: 8px",
+    "box-shadow: 0 4px 16px rgba(0,0,0,0.3)",
+    "max-width: 420px",
+    "white-space: pre-wrap",
+    "word-break: break-word",
+    "opacity: 0",
+    "transition: opacity 0.2s ease-in",
+  ].join(";");
+
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.style.opacity = "1";
+  });
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 300);
+  }, durationMs);
+}
+
+// --- Debug Keyboard Shortcut (Ctrl+Shift+Q) ---
+
+/**
+ * Registers a keyboard shortcut for developer debugging.
+ * Press Ctrl+Shift+Q to manually invoke extractResult and see
+ * the current extraction state in a toast + console.
+ */
+document.addEventListener("keydown", (e: KeyboardEvent) => {
+  if (e.ctrlKey && e.shiftKey && e.key === "Q") {
+    e.preventDefault();
+
+    const result = monitor.debugExtractResult();
+
+    if (result === null) {
+      const msg = "[GameTracker] No active scraper — not on a game page.";
+      console.warn(msg);
+      showDebugToast(msg);
+      return;
+    }
+
+    const { gameType, metric, date, completed } = result;
+    const metricLabel = gameType === "pinpoint" ? "score" : "time(s)";
+    const metricValue = metric !== null ? `${metric}` : "null";
+    const summary = [
+      `[GameTracker Debug]`,
+      `Game: ${gameType}`,
+      `Date: ${date ?? "unknown"}`,
+      `Completed: ${completed ?? "unknown"}`,
+      `${metricLabel}: ${metricValue}`,
+    ].join("\n");
+
+    console.log(summary, result);
+    showDebugToast(summary);
+  }
+});
