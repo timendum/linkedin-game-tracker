@@ -325,20 +325,22 @@ class ResultScraper {
       this.lastActiveTab = activeTab;
     }
 
-    // Show or hide the "yesterday" reminder based on active tab and time of day
-    this.maybeShowYesterdayReminder(activeTab);
-
-    // Show or hide the "full leaderboard" reminder on narrow result pages
-    this.maybeShowFullLeaderboardReminder();
-
     let totalRows = 0;
     for (const doc of docs) {
       const rows = doc.querySelectorAll(ResultScraper.ROW_SELECTOR);
       totalRows += rows.length;
     }
 
-    // Need at least one row to proceed (even if it's just "You")
+    // Need at least one row to proceed (even if it's just "You").
+    // Reminders are deferred until after results appear so we don't
+    // inject DOM elements that could break the page before it renders.
     if (totalRows === 0) return;
+
+    // Show or hide the "yesterday" reminder based on active tab and time of day
+    this.maybeShowYesterdayReminder(activeTab);
+
+    // Show or hide the "full leaderboard" reminder on narrow result pages
+    this.maybeShowFullLeaderboardReminder();
 
     // --- Gather user result and friends in a single pass ---
     const { userSession, friendSessions } = this.extractLeaderboardResults();
