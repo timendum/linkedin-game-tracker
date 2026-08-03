@@ -1,136 +1,80 @@
-/**
- * Browser Abstraction Module
- *
- * Isolates all browser-specific API calls into a single module that provides
- * a unified interface to the rest of the codebase. Detects the runtime environment
- * and maps chrome.* to browser.* for Firefox compatibility.
- */
+/// <reference types="@types/firefox-webext-browser" />
 
-// --- Interfaces ---
+import type {
+  ComparisonData,
+  GameDetailData,
+  GameSession,
+  GameType,
+  LeaderboardResultsPayload,
+  RankHistoryData,
+  SaveResult,
+  TodaySummaryData,
+} from "./types.ts";
+import type { MessageType } from "./types.ts";
 
-export interface BrowserRuntime {
-  sendMessage(message: unknown): Promise<unknown>;
-  getURL(path: string): string;
-  onMessage: {
-    addListener(
-      callback: (
-        msg: unknown,
-        sender: unknown,
-        sendResponse: (r: unknown) => void,
-      ) => void,
-    ): void;
+// --- Typed Messaging Layer ---
+
+/** Maps each MessageType to its request payload shape and response type */
+export interface MessageMap {
+  [MessageType.GAME_RESULT]: {
+    request: { type: MessageType.GAME_RESULT; payload: GameSession };
+    response: SaveResult;
+  };
+  [MessageType.LEADERBOARD_RESULTS]: {
+    request: { type: MessageType.LEADERBOARD_RESULTS; payload: LeaderboardResultsPayload };
+    response: SaveResult[];
+  };
+  [MessageType.GET_TODAY_SUMMARY]: {
+    request: { type: MessageType.GET_TODAY_SUMMARY; date: string };
+    response: TodaySummaryData;
+  };
+  [MessageType.GET_GAME_DETAIL]: {
+    request: { type: MessageType.GET_GAME_DETAIL; gameType: GameType; date: string };
+    response: GameDetailData;
+  };
+  [MessageType.GET_RANK_HISTORY]: {
+    request: { type: MessageType.GET_RANK_HISTORY; gameType: GameType; days?: number };
+    response: RankHistoryData;
+  };
+  [MessageType.GET_COMPARISON]: {
+    request: { type: MessageType.GET_COMPARISON; gameType: GameType; friendName: string };
+    response: ComparisonData;
+  };
+  [MessageType.GET_ALL_FRIENDS]: {
+    request: { type: MessageType.GET_ALL_FRIENDS };
+    response: string[];
+  };
+  [MessageType.GET_LATEST_SCRAPE_TIME]: {
+    request: { type: MessageType.GET_LATEST_SCRAPE_TIME; gameType: GameType; excludeDate?: string };
+    response: string | null;
+  };
+  [MessageType.GET_ALL_SESSIONS]: {
+    request: { type: MessageType.GET_ALL_SESSIONS };
+    response: GameSession[];
+  };
+  [MessageType.IMPORT_SESSIONS]: {
+    request: { type: MessageType.IMPORT_SESSIONS; payload: GameSession[] };
+    response: SaveResult[];
   };
 }
 
-export interface BrowserTabs {
-  create(options: { url: string }): Promise<unknown>;
-}
+/** Union of all valid request messages */
+export type AppMessage = MessageMap[MessageType]["request"];
+
+/** Extract the response type for a given message type */
+export type MessageResponse<T extends MessageType> = MessageMap[T]["response"];
+
+// --- Browser API ---
 
 export interface BrowserAPI {
-  runtime: BrowserRuntime;
-  tabs: BrowserTabs;
-}
-
-// --- Environment Detection ---
-
-/** Detect whether the extension is running in a Firefox environment */
-function isFirefox(): boolean {
-  return typeof globalThis !== "undefined" &&
-    "browser" in globalThis &&
-    typeof (globalThis as Record<string, unknown>).browser === "object";
-}
-
-/** Get the raw browser/chrome global */
-// deno-lint-ignore no-explicit-any
-function getRawAPI(): any {
-  if (isFirefox()) {
-    // deno-lint-ignore no-explicit-any
-    return (globalThis as any).browser;
-  }
-  // deno-lint-ignore no-explicit-any
-  return (globalThis as any).chrome;
-}
-
-// --- Chrome Promise Wrappers ---
-
-/**
- * Wraps a Chrome callback-style API call in a Promise.
- * Chrome MV3 does support promise-based APIs in many cases,
- * but this wrapper ensures consistent behavior across older versions.
- */
-// deno-lint-ignore no-explicit-any
-function promisify<T>(fn: (...args: any[]) => void, ...args: any[]): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    fn(...args, (result: T) => {
-      // deno-lint-ignore no-explicit-any
-      const error = (globalThis as any).chrome?.runtime?.lastError;
-      if (error) {
-        reject(new Error(error.message));
-      } else {
-        resolve(result);
-      }
-    });
-  });
-}
-
-// --- Chrome/Edge Implementation ---
-
-function createChromeRuntime(): BrowserRuntime {
-  const api = getRawAPI();
-  const runtime = api?.runtime;
-
-  return {
-    sendMessage(message: unknown): Promise<unknown> {
-      if (isFirefox()) {
-        return runtime.sendMessage(message);
-      }
-      // Chrome MV3 sendMessage supports promises
-      if (runtime?.sendMessage) {
-        return promisify<unknown>(
-          runtime.sendMessage.bind(runtime),
-          message,
-        );
-      }
-      return Promise.reject(new Error("runtime.sendMessage not available"));
-    },
-
-    getURL(path: string): string {
-      return runtime?.getURL?.(path) ?? path;
-    },
-
-    onMessage: {
-      addListener(
-        callback: (
-          msg: unknown,
-          sender: unknown,
-          sendResponse: (r: unknown) => void,
-        ) => void,
-      ): void {
-        runtime?.onMessage?.addListener(callback);
-      },
-    },
+  runtime: Omit<typeof globalThis.browser.runtime, "sendMessage"> & {
+    sendMessage<T extends AppMessage>(message: T): Promise<MessageResponse<T["type"]>>;
   };
-}
-
-function createChromeTabs(): BrowserTabs {
-  const api = getRawAPI();
-  const tabs = api?.tabs;
-
-  return {
-    create(options: { url: string }): Promise<unknown> {
-      if (isFirefox()) {
-        return tabs.create(options);
-      }
-      if (tabs?.create) {
-        return promisify<unknown>(tabs.create.bind(tabs), options);
-      }
-      return Promise.reject(new Error("tabs.create not available"));
-    },
-  };
+  tabs: typeof globalThis.browser.tabs;
 }
 
 /** Browser API for use throughout the codebase */
 export const browserAPI: BrowserAPI = {
-  runtime: createChromeRuntime(),
-  tabs: createChromeTabs(),
+  runtime: globalThis.browser.runtime as BrowserAPI["runtime"],
+  tabs: globalThis.browser.tabs,
 };

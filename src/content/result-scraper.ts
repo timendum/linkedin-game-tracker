@@ -363,7 +363,7 @@ class ResultScraper {
   ): Promise<void> {
     const payload: LeaderboardResultsPayload = { userSession, friendSessions };
     const message = {
-      type: MessageType.LEADERBOARD_RESULTS,
+      type: MessageType.LEADERBOARD_RESULTS as const,
       payload,
     };
     console.log("LinkedIn Games Tracker: sending leaderboard results", payload);
@@ -512,7 +512,7 @@ class ResultScraper {
         type: MessageType.GET_LATEST_SCRAPE_TIME,
         gameType: this.gameType,
         excludeDate: todayDate,
-      }) as string | null;
+      });
 
       let isStale: boolean;
       if (latestScrapeTime === null) {
@@ -616,7 +616,7 @@ class ResultScraper {
         type: MessageType.GET_LATEST_SCRAPE_TIME,
         gameType: this.gameType,
         excludeDate: todayDate,
-      }) as string | null;
+      });
 
       let isStale: boolean;
       if (latestScrapeTime === null) {

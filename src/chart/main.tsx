@@ -7,7 +7,7 @@
 
 import { render } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import type { GameType, RankHistoryData, TodaySummaryData } from "../lib/types.ts";
+import type { GameType } from "../lib/types.ts";
 import { ALL_GAME_TYPES, MessageType } from "../lib/types.ts";
 import { browserAPI } from "../lib/browser.ts";
 import { formatTime, GAME_DISPLAY_NAMES, sortGameTypes } from "../lib/formatters.ts";
@@ -52,10 +52,11 @@ function ChartPage() {
 
   // Fetch today summary once to determine dropdown order and default game
   useEffect(() => {
-    browserAPI.runtime
-      .sendMessage({ type: MessageType.GET_TODAY_SUMMARY })
-      .then((response) => {
-        const data = response as TodaySummaryData;
+    browserAPI.runtime.sendMessage({
+      type: MessageType.GET_TODAY_SUMMARY,
+      date: Temporal.Now.plainDateISO().toString(),
+    })
+      .then((data) => {
         if (data?.games?.length) {
           const sorted = sortGameTypes(data.games);
           setSortedGameTypes(sorted);
@@ -81,14 +82,12 @@ function ChartPage() {
     setLoading(true);
     setError(null);
 
-    browserAPI.runtime
-      .sendMessage({
-        type: MessageType.GET_RANK_HISTORY,
-        gameType: selectedGame,
-        days: 14,
-      })
-      .then((response) => {
-        const data = response as RankHistoryData;
+    browserAPI.runtime.sendMessage({
+      type: MessageType.GET_RANK_HISTORY,
+      gameType: selectedGame,
+      days: 14,
+    })
+      .then((data) => {
         console.debug(data);
         setLoading(false);
         if (!canvasRef.current) return;

@@ -31,7 +31,7 @@ function App() {
       type: MessageType.GET_TODAY_SUMMARY,
       date: todayDate,
     }).then((data) => {
-      return setTodayData(data as TodaySummaryData);
+      return setTodayData(data);
     }).catch((err) => {
       console.error("Failed to load today's summary:", err);
       setError("Unable to load today's summary.");

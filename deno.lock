@@ -5,6 +5,7 @@
     "jsr:@deno/loader@~0.3.10": "0.3.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@^1.1.1": "1.1.6",
+    "npm:@types/firefox-webext-browser@143": "143.0.0",
     "npm:chart.js@4.5.1": "4.5.1",
     "npm:esbuild@0.28.1": "0.28.1",
     "npm:esbuild@~0.25.5": "0.25.12",
@@ -393,6 +394,9 @@
       "os": ["win32"],
       "cpu": ["x64"]
     },
+    "@types/firefox-webext-browser@143.0.0": {
+      "integrity": "sha512-865dYKMOP0CllFyHmgXV4IQgVL51OSQQCwSoihQ17EwugePKFSAZRc0EI+y7Ly4q7j5KyURlA7LgRpFieO4JOw=="
+    },
     "chart.js@4.5.1": {
       "integrity": "sha512-GIjfiT9dbmHRiYi6Nl2yFCq7kkwdkp1W/lp2J99rX0yo9tgJGn3lKQATztIjb5tVtevcBtIdICNWqlq5+E8/Pw==",
       "dependencies": [
@@ -620,6 +624,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@deno/esbuild-plugin@^1.2.1",
+      "npm:@types/firefox-webext-browser@143",
       "npm:chart.js@4.5.1",
       "npm:esbuild@0.28.1",
       "npm:idb@8.0.3",

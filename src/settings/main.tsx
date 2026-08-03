@@ -143,9 +143,9 @@ function Settings() {
   const onExport = useCallback(async () => {
     setExportStatus("Exporting…");
     try {
-      const sessions = (await browserAPI.runtime.sendMessage({
+      const sessions = await browserAPI.runtime.sendMessage({
         type: MessageType.GET_ALL_SESSIONS,
-      })) as GameSession[];
+      });
 
       if (!sessions || sessions.length === 0) {
         setExportStatus("No data to export.");
@@ -210,10 +210,10 @@ function Settings() {
       }
 
       // Send to background for upsert
-      const results = (await browserAPI.runtime.sendMessage({
+      const results = await browserAPI.runtime.sendMessage({
         type: MessageType.IMPORT_SESSIONS,
         payload: validSessions,
-      })) as { success: boolean; overwritten: boolean }[];
+      });
 
       const imported = results.filter((r) => r.success && !r.overwritten).length;
       const overwritten = results.filter((r) => r.success && r.overwritten).length;

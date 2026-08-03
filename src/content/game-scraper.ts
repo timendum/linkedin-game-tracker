@@ -337,7 +337,7 @@ class GameScraper {
    */
   async reportResult(result: GameSession): Promise<void> {
     const message = {
-      type: MessageType.GAME_RESULT,
+      type: MessageType.GAME_RESULT as const,
       payload: result,
     };
 

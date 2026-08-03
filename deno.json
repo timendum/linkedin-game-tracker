@@ -9,6 +9,7 @@
   },
   "imports": {
     "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.2.1",
+    "@types/firefox-webext-browser": "npm:@types/firefox-webext-browser@^143.0.0",
     "preact": "npm:preact@10.29.7",
     "preact/hooks": "npm:preact@10.29.7/hooks",
     "idb": "npm:idb@8.0.3",

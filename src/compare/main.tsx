@@ -24,10 +24,7 @@ function getFriendNameFromURL(): string | null {
 
 /** Fetch all friend names from the background service worker */
 async function fetchAllFriends(): Promise<string[]> {
-  const response = await browserAPI.runtime.sendMessage({
-    type: MessageType.GET_ALL_FRIENDS,
-  });
-  return (response as string[]) ?? [];
+  return await browserAPI.runtime.sendMessage({ type: MessageType.GET_ALL_FRIENDS });
 }
 
 function ComparePage() {
@@ -64,14 +61,13 @@ function ComparePage() {
     setError(null);
 
     const promises = ALL_GAME_TYPES.map((gameType) =>
-      browserAPI.runtime
-        .sendMessage({
-          type: MessageType.GET_COMPARISON,
-          gameType,
-          friendName,
-        })
-        .then((response) => ({ gameType, data: response as ComparisonData }))
-        .catch(() => ({ gameType, data: null }))
+      browserAPI.runtime.sendMessage({
+        type: MessageType.GET_COMPARISON,
+        gameType,
+        friendName,
+      })
+        .then((data) => ({ gameType, data }))
+        .catch(() => ({ gameType, data: null as ComparisonData | null }))
     );
 
     Promise.all(promises).then((responses) => {

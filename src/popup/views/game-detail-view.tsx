@@ -374,16 +374,15 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
       setError("Unable to load game data. Please try again.");
     }, 5000);
 
-    browserAPI.runtime
-      .sendMessage({
-        type: MessageType.GET_GAME_DETAIL,
-        gameType,
-        date: todayDate,
-      })
+    browserAPI.runtime.sendMessage({
+      type: MessageType.GET_GAME_DETAIL,
+      gameType,
+      date: todayDate,
+    })
       .then((response) => {
         if (timedOut) return;
         clearTimeout(timeout);
-        setData(response as GameDetailData);
+        setData(response);
         setLoading(false);
         return;
       })
@@ -405,14 +404,12 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
       return;
     }
 
-    browserAPI.runtime
-      .sendMessage({
-        type: MessageType.GET_GAME_DETAIL,
-        gameType,
-        date: selectedDate,
-      })
-      .then((response) => {
-        const detail = response as GameDetailData;
+    browserAPI.runtime.sendMessage({
+      type: MessageType.GET_GAME_DETAIL,
+      gameType,
+      date: selectedDate,
+    })
+      .then((detail) => {
         setLeaderboardEntries(detail.leaderboard);
         return;
       })

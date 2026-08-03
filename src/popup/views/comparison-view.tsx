@@ -31,16 +31,15 @@ export function ComparisonView({ gameType, friendName, onBack }: ComparisonViewP
       setError("Unable to load comparison data. Please try again.");
     }, 5000);
 
-    browserAPI.runtime
-      .sendMessage({
-        type: MessageType.GET_COMPARISON,
-        gameType,
-        friendName,
-      })
+    browserAPI.runtime.sendMessage({
+      type: MessageType.GET_COMPARISON,
+      gameType,
+      friendName,
+    })
       .then((response) => {
         if (timedOut) return;
         clearTimeout(timeout);
-        setData(response as ComparisonData);
+        setData(response);
         setLoading(false);
         return;
       })
