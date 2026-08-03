@@ -148,21 +148,21 @@ export class DataStore {
               session.score !== existingNarrowed.score
             ) {
               await store.put(session, existingKey!);
-              return { success: true, overwritten: true };
+              return { success: true, overwritten: true, duplicate: false };
             }
-            return { success: true, overwritten: false };
+            return { success: true, overwritten: false, duplicate: true };
           }
 
           const newKey = compositeKey(session.gameType, session.date, session.playerName);
           await store.put(session, newKey);
-          return { success: true, overwritten: false };
+          return { success: true, overwritten: false, duplicate: false };
         }),
       );
 
       await tx.done;
       return results;
     } catch {
-      return incoming.map(() => ({ success: false, overwritten: false }));
+      return incoming.map(() => ({ success: false, overwritten: false, duplicate: false }));
     }
   }
 

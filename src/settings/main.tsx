@@ -127,7 +127,7 @@ function rowToSession(row: Record<string, string>): unknown {
 type ImportStatus =
   | { state: "idle" }
   | { state: "processing" }
-  | { state: "success"; imported: number; skipped: number; overwritten: number }
+  | { state: "success"; imported: number; skipped: number; overwritten: number; duplicates: number }
   | { state: "error"; message: string };
 
 function Settings() {
@@ -215,11 +215,12 @@ function Settings() {
         payload: validSessions,
       });
 
-      const imported = results.filter((r) => r.success && !r.overwritten).length;
+      const imported = results.filter((r) => r.success && !r.overwritten && !r.duplicate).length;
       const overwritten = results.filter((r) => r.success && r.overwritten).length;
+      const duplicates = results.filter((r) => r.success && r.duplicate).length;
       const skipped = errors.length;
 
-      setImportStatus({ state: "success", imported, skipped, overwritten });
+      setImportStatus({ state: "success", imported, skipped, overwritten, duplicates });
     } catch (err) {
       setImportStatus({
         state: "error",
@@ -268,7 +269,8 @@ function Settings() {
         {importStatus.state === "processing" && <p class="settings-status">Processing…</p>}
         {importStatus.state === "success" && (
           <p class="settings-status settings-status--success">
-            Done — {importStatus.imported} new, {importStatus.overwritten} updated
+            Done — {importStatus.imported} new, {importStatus.overwritten} updated,{" "}
+            {importStatus.duplicates} unchanged
             {importStatus.skipped > 0 && `, ${importStatus.skipped} skipped (invalid)`}
           </p>
         )}

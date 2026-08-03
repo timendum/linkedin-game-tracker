@@ -99,8 +99,10 @@ export type GameSession = ScoreBasedSession | TimeBasedSession;
 /** Result of a single session save operation */
 export interface SaveResult {
   success: boolean;
-  /** True if an existing session with the same composite key was replaced */
+  /** True if an existing session with the same composite key was replaced with different data */
   overwritten: boolean;
+  /** True if a session with the same composite key and identical data already existed */
+  duplicate: boolean;
 }
 
 /** Message types for inter-component communication via chrome.runtime.sendMessage */
