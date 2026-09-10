@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Games Tracker for LinkedIn",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "description": "Automatically tracks your LinkedIn game performance and displays statistics.",
   "permissions": [],
   "icons": {

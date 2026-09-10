@@ -440,18 +440,16 @@ class GameScraper {
       return;
     }
 
-    // Exhausted all retries. If we at least have date/completed, report with defaults.
-    if (date !== null || completed !== null) {
-      const session = this.buildSession(metric, date, completed);
-      if (session) {
-        this.hasReported = true;
-        this.disconnect();
-        this.reportResult(session);
-      }
+    // Exhausted all retries. buildSession returns null when the metric is
+    // unreadable, in which case we don't report (avoids clobbering a real result).
+    const session = this.buildSession(metric, date, completed);
+    if (session) {
+      this.hasReported = true;
+      this.disconnect();
+      this.reportResult(session);
       return;
     }
 
-    // Complete failure — show error toast
     showErrorToast(
       "LinkedIn Games Tracker: Could not capture game result. The page structure may have changed.",
     );
@@ -460,8 +458,9 @@ class GameScraper {
   }
 
   /**
-   * Builds a complete GameSession from extracted data.
-   * Uses defaults for missing non-critical fields.
+   * Builds a GameSession from extracted data, or null when the metric could
+   * not be read. Never fabricates a placeholder metric, since a bogus value
+   * would overwrite a previously stored real result during SPA game-switching.
    */
   private buildSession(
     metric: number | null,
@@ -473,27 +472,25 @@ class GameScraper {
     const scrapedAt = Temporal.Now.instant().toString();
 
     if (this.gameType === "pinpoint") {
-      // For Pinpoint, score is the metric (1-5 clues/guesses)
-      const score = metric !== null && metric >= 1 && metric <= 5 ? metric : 1;
+      if (metric === null || metric < 1 || metric > 5) return null;
       return {
         gameType: "pinpoint",
         date: sessionDate,
         playerName: "self",
         completed: sessionCompleted,
         scrapedAt,
-        score,
+        score: metric,
       };
     }
 
-    // Time-based games
-    const completionTime = metric !== null && metric > 0 ? metric : 1;
+    if (metric === null || metric <= 0) return null;
     return {
       gameType: this.gameType as TimeBasedGameType,
       date: sessionDate,
       playerName: "self",
       completed: sessionCompleted,
       scrapedAt,
-      completionTime,
+      completionTime: metric,
     };
   }
 
