@@ -11,6 +11,7 @@ import type { GameType } from "../lib/types.ts";
 import { ALL_GAME_TYPES, MessageType } from "../lib/types.ts";
 import { browserAPI } from "../lib/browser.ts";
 import { formatTime, GAME_DISPLAY_NAMES, sortGameTypes } from "../lib/formatters.ts";
+import { getTodayISO } from "../lib/dates.ts";
 import {
   CategoryScale,
   Chart,
@@ -54,7 +55,7 @@ function ChartPage() {
   useEffect(() => {
     browserAPI.runtime.sendMessage({
       type: MessageType.GET_TODAY_SUMMARY,
-      date: Temporal.Now.plainDateISO().toString(),
+      date: getTodayISO(),
     })
       .then((data) => {
         if (data?.games?.length) {

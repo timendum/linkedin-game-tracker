@@ -507,7 +507,7 @@ class ResultScraper {
    */
   private async checkStalenessAndShow(): Promise<void> {
     try {
-      const todayDate = Temporal.Now.plainDateISO().toString();
+      const todayDate = getTodayISO();
       const latestScrapeTime = await browserAPI.runtime.sendMessage({
         type: MessageType.GET_LATEST_SCRAPE_TIME,
         gameType: this.gameType,
@@ -611,7 +611,7 @@ class ResultScraper {
    */
   private async checkFullLeaderboardStaleness(): Promise<void> {
     try {
-      const todayDate = Temporal.Now.plainDateISO().toString();
+      const todayDate = getTodayISO();
       const latestScrapeTime = await browserAPI.runtime.sendMessage({
         type: MessageType.GET_LATEST_SCRAPE_TIME,
         gameType: this.gameType,

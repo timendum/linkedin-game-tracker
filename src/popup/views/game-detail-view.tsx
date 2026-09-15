@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 import type { GameDetailData, GameSession, GameType, LeaderboardEntry } from "../../lib/types.ts";
 import { MessageType } from "../../lib/types.ts";
 import { browserAPI } from "../../lib/browser.ts";
+import { getLinkedInToday, getTodayISO } from "../../lib/dates.ts";
 import { formatTodayResult, normalizeTrend } from "../../lib/game-detail-utils.ts";
 import {
   buildPercentilePills,
@@ -276,7 +277,7 @@ interface DayNavigatorProps {
 }
 
 function DayNavigator({ selectedDate, onDateChange }: DayNavigatorProps) {
-  const today = Temporal.Now.plainDateISO();
+  const today = getLinkedInToday();
   const selected = selectedDate ? Temporal.PlainDate.from(selectedDate) : null;
 
   const handlePrev = useCallback(() => {
@@ -365,7 +366,7 @@ export function GameDetailView({ gameType, onBack, onCompare }: GameDetailViewPr
 
   // Fetch main data (always for today)
   useEffect(() => {
-    const todayDate = Temporal.Now.plainDateISO().toString();
+    const todayDate = getTodayISO();
     let timedOut = false;
 
     const timeout = setTimeout(() => {

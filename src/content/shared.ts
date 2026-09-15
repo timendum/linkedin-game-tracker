@@ -77,24 +77,10 @@ export function parseTimeToSeconds(timeStr: string): number | null {
 
 // --- Date Helpers ---
 
-/**
- * LinkedIn games are released daily at midnight Pacific Time.
- * https://www.linkedin.com/help/linkedin/answer/a6863543
- * We anchor all date calculations to America/Los_Angeles so that users in
- * other time zones get the correct puzzle date regardless of their local clock.
- */
-const LINKEDIN_GAMES_TIMEZONE = "America/Los_Angeles";
-
-/** Returns today's date in ISO format (YYYY-MM-DD), anchored to Pacific Time. */
-export function getTodayISO(): string {
-  return Temporal.Now.plainDateISO(LINKEDIN_GAMES_TIMEZONE).toString();
-}
-
-/** Returns yesterday's date in ISO format (YYYY-MM-DD), anchored to Pacific Time. */
-export function getYesterdayISO(): string {
-  return Temporal.Now.plainDateISO(LINKEDIN_GAMES_TIMEZONE).subtract({ days: 1 })
-    .toString();
-}
+// Date helpers are anchored to the LinkedIn games time zone (Pacific Time).
+// Re-exported from the shared lib so content scripts, popup, background, and
+// standalone pages all compute the same puzzle date.
+export { getTodayISO, getYesterdayISO } from "../lib/dates.ts";
 
 // --- SPA Navigation Monitor ---
 

@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 import type { GameType, TodaySummaryData } from "../lib/types.ts";
 import { MessageType } from "../lib/types.ts";
 import { browserAPI } from "../lib/browser.ts";
+import { getTodayISO } from "../lib/dates.ts";
 import { TodaySummary } from "./views/today-view.tsx";
 import { GameDetailView } from "./views/game-detail-view.tsx";
 import { ComparisonView } from "./views/comparison-view.tsx";
@@ -26,7 +27,7 @@ function App() {
 
   // Load today summary on mount
   useEffect(() => {
-    const todayDate = new Date().toISOString().split("T")[0];
+    const todayDate = getTodayISO();
     browserAPI.runtime.sendMessage({
       type: MessageType.GET_TODAY_SUMMARY,
       date: todayDate,

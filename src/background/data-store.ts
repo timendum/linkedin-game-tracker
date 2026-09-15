@@ -25,6 +25,7 @@ import type {
 } from "../lib/types.ts";
 
 import { VALID_GAME_TYPES } from "../lib/validators.ts";
+import { getLinkedInToday } from "../lib/dates.ts";
 import {
   buildLeaderboard,
   computeMedian,
@@ -336,7 +337,7 @@ export class DataStore {
    */
   async getRankHistory(gameType: GameType, days: number): Promise<RankHistoryData> {
     const sessions = await this.loadSessionsForGame(gameType);
-    const today = Temporal.Now.plainDateISO();
+    const today = getLinkedInToday();
 
     // Build list of date strings
     const dates: string[] = [];
@@ -505,7 +506,7 @@ export class DataStore {
     const friendMedian = computeMedian(friendMetrics);
 
     // Daily results (last 14 days)
-    const today = Temporal.Now.plainDateISO();
+    const today = getLinkedInToday();
     const dailyResults: DailyComparison[] = [];
     for (let i = 13; i >= 0; i--) {
       const dayStr = today.subtract({ days: i }).toString();
